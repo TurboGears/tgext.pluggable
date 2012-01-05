@@ -13,6 +13,7 @@
 </head>
 
 <body>
+    <div py:if="request.identity">Hi ${request.identity['user']}</div>
     <div id="hello_box">
         <img src="${tg.url('/_pluggable/{{package}}/images/star.png')}"/> Hello from, ${h.{{package}}.bold(sample.name)}
     </div>
