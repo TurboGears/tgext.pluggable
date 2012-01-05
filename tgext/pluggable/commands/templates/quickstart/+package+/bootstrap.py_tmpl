@@ -1,0 +1,13 @@
+# -*- coding: utf-8 -*-
+"""Setup the {{package}} application"""
+
+from {{package}} import model
+
+def bootstrap(command, conf, vars):
+    print 'Bootstrapping {{package}}...'
+
+    s1 = model.Sample()
+    s1.name = 'Test Sample'
+
+    model.DBSession.add(s1)
+    model.DBSession.flush()

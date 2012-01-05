@@ -1,0 +1,10 @@
+from sqlalchemy import Table, ForeignKey, Column
+from sqlalchemy.types import Unicode, Integer, DateTime
+
+from {{package}}.model import DeclarativeBase
+
+class Sample(DeclarativeBase):
+    __tablename__ = 'samples'
+
+    uid = Column(Integer, autoincrement=True, primary_key=True)
+    name = Column(Unicode(16))
