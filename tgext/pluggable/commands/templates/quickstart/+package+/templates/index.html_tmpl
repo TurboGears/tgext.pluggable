@@ -17,5 +17,6 @@
     <div id="hello_box">
         <img src="${tg.url('/_pluggable/{{package}}/images/star.png')}"/> Hello from, ${h.{{package}}.bold(sample.name)}
     </div>
+    <div>${h.call_partial('{{package}}.partials:something', name='Partial')}</div>
 </body>
 </html>

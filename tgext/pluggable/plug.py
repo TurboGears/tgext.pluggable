@@ -3,26 +3,41 @@ from adapt_models import ModelsAdapter
 from adapt_controllers import ControllersAdapter
 from adapt_websetup import WebSetupAdapter
 from adapt_statics import StaticsAdapter, PluggedStaticsMiddleware
+from utils import call_partial
 
 log = logging.getLogger('tgext.pluggable')
 
 class MissingAppIdException(Exception):
     pass
 
+def init_pluggables(app_config, plugged):
+    #Enable plugged statics
+    def enable_statics_middleware(app):
+        return PluggedStaticsMiddleware(app, plugged)
+    app_config.register_hook('after_config', enable_statics_middleware)
+
+    #Inject call_partial helper if application has helpers
+    try:
+        app_helpers = app_config.package.lib.helpers
+    except:
+        app_helpers = None
+
+    if app_helpers:
+        app_config._partials_cache = {}
+        app_helpers.call_partial = call_partial
+
 def plug(app_config, module_name, appid=None, **kwargs):
     try:
         plugged = app_config['tgext.pluggable.plugged']
     except KeyError:
         plugged = app_config['tgext.pluggable.plugged'] = {'appids':{}, 'modules':{}}
-        def enable_statics_middleware(app):
-            return PluggedStaticsMiddleware(app, plugged)
-        app_config.register_hook('after_config', enable_statics_middleware)
+        init_pluggables(app_config, plugged)
 
     options = dict(appid=appid)
     options.update(kwargs)
     
     module = __import__(module_name, globals(), locals(),
-                        ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public'],
+                        ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
                         -1)
 
     log.info('Plugging %s', module_name)
