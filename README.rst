@@ -40,6 +40,7 @@ Other options include:
     - plug_controller (True/False) -> Mount pluggable app root controller
     - plug_bootstrap (True/False) -> Enable websetup.bootstrap plugging
     - plug_statics (True/False) -> Enable plugged app statics
+    - rename_tables (True/False) -> Rename pluggable tables by prepending appid.
 
 Creating Pluggable Apps
 ----------------------------
