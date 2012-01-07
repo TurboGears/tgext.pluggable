@@ -67,7 +67,7 @@ def plug(app_config, module_name, appid=None, **kwargs):
         if app_helpers:
             setattr(app_helpers, module_name, module.helpers)
 
-            if module_options.get('global_helpers', True):
+            if module_options.get('global_helpers', False):
                 for name, impl in inspect.getmembers(module.helpers):
                     if name.startswith('_'):
                         continue
