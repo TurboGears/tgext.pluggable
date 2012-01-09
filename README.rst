@@ -44,6 +44,45 @@ Other options include:
     - plug_statics (True/False) -> Enable plugged app statics
     - rename_tables (True/False) -> Rename pluggable tables by prepending appid.
 
+Partials
+--------------------------
+
+tgext.pluggables provides a bunch of utilities to work with partials.
+Partials in tgext.pluggable can be declared as a function or TGController
+subclass method that has an *@expose* decorator. Those partials can lately
+be rendered with::
+
+    ${h.call_partial('module:function_name', arg1='Something')}
+
+In the case of a class method::
+
+    ${h.call_partial('module.Class:method', arg1='Something')}
+
+The quickstarted pluggable application provides an example partial::
+
+    from tg import expose
+    @expose('plugappname.templates.little_partial')
+    def something(name):
+        return dict(name=name)
+
+which can be rendered using::
+
+    ${h.call_partial('plugappname.partials:something', name='Partial')}
+
+Replacing Templates
+--------------------------
+
+tgext.pluggable provides a function to replace templates.
+This is useful when you want to override the template that an application
+you plugged in is exposing. To override call **replace_template** inside
+your application config::
+
+    from tgext.pluggable replace_template
+    replace_template(base_config, 'myapp.templates.about', 'myapp.templates.index')
+
+**replace__template** will work even with tgext.pluggable partials, but
+won't work with templates rendered directly calling the **render** method.
+
 Creating Pluggable Apps
 ----------------------------
 
@@ -66,3 +105,4 @@ After enabling the *plugtest* application you should run
 *paster setup-app development.ini* inside your TurboGears project
 to create the sample model. Then you can access the sample
 application page though *http://localhost:8080/plugtest*
+

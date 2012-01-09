@@ -10,28 +10,34 @@ log = logging.getLogger('tgext.pluggable')
 class MissingAppIdException(Exception):
     pass
 
-def init_pluggables(app_config, plugged):
-    #Enable plugged statics
-    def enable_statics_middleware(app):
-        return PluggedStaticsMiddleware(app, plugged)
-    app_config.register_hook('after_config', enable_statics_middleware)
-
-    #Inject call_partial helper if application has helpers
-    try:
-        app_helpers = app_config.package.lib.helpers
-    except:
-        app_helpers = None
-
-    if app_helpers:
-        app_config._partials_cache = {}
-        app_helpers.call_partial = call_partial
-
-def plug(app_config, module_name, appid=None, **kwargs):
+def init_pluggables(app_config):
+    first_init = False
     try:
         plugged = app_config['tgext.pluggable.plugged']
     except KeyError:
+        first_init = True
         plugged = app_config['tgext.pluggable.plugged'] = {'appids':{}, 'modules':{}}
-        init_pluggables(app_config, plugged)
+
+    if first_init:
+        #Enable plugged statics
+        def enable_statics_middleware(app):
+            return PluggedStaticsMiddleware(app, plugged)
+        app_config.register_hook('after_config', enable_statics_middleware)
+
+        #Inject call_partial helper if application has helpers
+        try:
+            app_helpers = app_config.package.lib.helpers
+        except:
+            app_helpers = None
+
+        if app_helpers:
+            app_config._pluggable_partials_cache = {}
+            app_helpers.call_partial = call_partial
+
+    return plugged
+
+def plug(app_config, module_name, appid=None, **kwargs):
+    plugged = init_pluggables(app_config)
 
     options = dict(appid=appid)
     options.update(kwargs)
