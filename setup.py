@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.0.1'
+version = '0.0.2'
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -30,7 +30,7 @@ setup(name='tgext.pluggable',
       package_data = {'':['*.html', '*.js', '*.css', '*.png', '*.gif']},
       zip_safe=False,
       install_requires=[
-        "TurboGears2 >= 2.1",
+        "TurboGears2 >= 2.1.4",
       ],
       entry_points="""
         [paste.global_paster_command]
