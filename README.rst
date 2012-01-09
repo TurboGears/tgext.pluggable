@@ -61,6 +61,7 @@ In the case of a class method::
 The quickstarted pluggable application provides an example partial::
 
     from tg import expose
+    
     @expose('plugappname.templates.little_partial')
     def something(name):
         return dict(name=name)
@@ -78,9 +79,10 @@ you plugged in is exposing. To override call **replace_template** inside
 your application config::
 
     from tgext.pluggable replace_template
+
     replace_template(base_config, 'myapp.templates.about', 'myapp.templates.index')
 
-**replace__template** will work even with tgext.pluggable partials, but
+**replace_template** will work even with tgext.pluggable partials, but
 won't work with templates rendered directly calling the **render** method.
 
 Creating Pluggable Apps
