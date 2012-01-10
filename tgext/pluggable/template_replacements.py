@@ -9,7 +9,7 @@ def replace_template_hook(remainder, params, output):
     try:
         dispatch_state = req._controller_state
     except:
-        dispatch_state = req._controller_state
+        dispatch_state = req.controller_state
 
     decoration = Decoration.get_decoration(dispatch_state.method)
 
