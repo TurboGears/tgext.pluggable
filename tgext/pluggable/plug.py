@@ -1,5 +1,5 @@
 import logging, inspect
-from adapt_models import ModelsAdapter
+from adapt_models import ModelsAdapter, app_model
 from adapt_controllers import ControllersAdapter
 from adapt_websetup import WebSetupAdapter
 from adapt_statics import StaticsAdapter, PluggedStaticsMiddleware
@@ -19,6 +19,9 @@ def init_pluggables(app_config):
         plugged = app_config['tgext.pluggable.plugged'] = {'appids':{}, 'modules':{}}
 
     if first_init:
+        #Hook Application models
+        app_model.configure(app_config['model'])
+
         #Enable plugged statics
         def enable_statics_middleware(app):
             return PluggedStaticsMiddleware(app, plugged)

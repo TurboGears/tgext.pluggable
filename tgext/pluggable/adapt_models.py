@@ -1,4 +1,7 @@
 import inspect
+from session_wrapper import TargetAppModel
+
+app_model = TargetAppModel()
 
 class ModelsAdapter(object):
     def __init__(self, config, models, options):
@@ -25,3 +28,6 @@ class ModelsAdapter(object):
                 model.__tablename__ = app_id + '_' + model.__tablename__
                 model.__table__.name = model.__tablename__
             model.__table__.tometadata(project_DeclarativeBase.metadata)
+
+def primary_key(model):
+    return model.__mapper__.primary_key[0]

@@ -13,3 +13,19 @@ class PluggableSession(object):
 
     def __getattr__(self, item):
         return getattr(self.wrapped_session, item)
+
+class TargetAppModel(object):
+    """
+    Provides a proxy to the application models,
+    it is set up by tgext.pluggable to wrap
+    the application models at startup.
+    """
+
+    def __init__(self):
+        self.wrapped_module = None
+
+    def configure(self, models):
+        self.wrapped_module = models
+
+    def __getattr__(self, item):
+        return getattr(self.wrapped_module, item)

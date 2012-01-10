@@ -15,7 +15,9 @@
 <body>
     <div py:if="request.identity">Hi ${request.identity['user']}</div>
     <div id="hello_box">
-        <img src="${tg.url('/_pluggable/{{package}}/images/star.png')}"/> Hello from, ${h.{{package}}.bold(sample.name)}
+        <img src="${tg.url('/_pluggable/{{package}}/images/star.png')}"/>
+        Hello from, ${h.{{package}}.bold(sample.name)}
+        owned by ${sample.user}
     </div>
     <div>${h.call_partial('{{package}}.partials:something', name='Partial')}</div>
 </body>

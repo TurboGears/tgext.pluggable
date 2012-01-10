@@ -110,3 +110,28 @@ After enabling the *plugtest* application you should run
 to create the sample model. Then you can access the sample
 application page though *http://localhost:8080/plugtest*
 
+Accessing Application Models from Pluggable Apps
+---------------------------------------------------
+
+When creating a pluggable application you might often need to
+access to some models that have been declared inside the
+target application where the pluggable app will be mounted.
+
+The most common use case for this is referencing the User, Group and Permission
+models. To do this tgext.pluggable provides an **app_model** object which
+wraps the application model and is initialized before loading the pluggable app.
+
+This makes possible to access target application models referencing
+them as **app_model.User** or **app_model.Group** and so on.
+While you can guess that the primary key for those models is known
+(for the app_model.User object for example you might consider referencing
+to it as app_model.User.user_id) it is best practice to call the **primary_key**
+function provided by tgext.pluggable to get a reference to its column.
+
+This way it is possibile to declare relations to models which are not
+provided by your pluggable app::
+
+        from tgext.pluggable import app_model, primary_key
+
+        user_id = Column(Integer, ForeignKey(primary_key(app_model.User)))
+        user = relation(app_model.User)
