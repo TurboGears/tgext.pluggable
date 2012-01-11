@@ -1,5 +1,5 @@
 from tg import expose
 
-@expose('plugtest.templates.little_partial')
+@expose('{{package}}.templates.little_partial')
 def something(name):
     return dict(name=name)
