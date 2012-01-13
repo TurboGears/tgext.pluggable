@@ -42,3 +42,16 @@ class PartialCaller(object):
 
 call_partial = PartialCaller()
 
+def mount_point(pluggable_name):
+    return '/' + tg.config['tgext.pluggable.plugged']['modules'][pluggable_name]['appid']
+
+def plug_url(pluggable_name, path, params=None, lazy=False):
+    if not params:
+        params = {}
+
+    base_url = mount_point(pluggable_name)
+    base_url += path
+    if lazy:
+        return tg.lurl(base_url, params=params)
+    else:
+        return tg.url(base_url, params=params)

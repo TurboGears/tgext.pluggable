@@ -131,7 +131,18 @@ function provided by tgext.pluggable to get a reference to its column.
 This way it is possibile to declare relations to models which are not
 provided by your pluggable app::
 
-        from tgext.pluggable import app_model, primary_key
+    from tgext.pluggable import app_model, primary_key
 
-        user_id = Column(Integer, ForeignKey(primary_key(app_model.User)))
-        user = relation(app_model.User)
+    user_id = Column(Integer, ForeignKey(primary_key(app_model.User)))
+    user = relation(app_model.User)
+
+Pluggable Relative Urls
+----------------------------------
+
+It is possible to generate an url relative to a pluggable mount point
+using the **plug_url(pluggable, path, params=None, lazy=False)** this
+function is also exposed inside the application helpers when a pluggable
+is used. For example to generate an url relative to the *plugtest* pluggable
+it is possible to call plug_url::
+
+    plug_url('plugtest', '/')

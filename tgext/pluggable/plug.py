@@ -3,11 +3,14 @@ from adapt_models import ModelsAdapter, app_model
 from adapt_controllers import ControllersAdapter
 from adapt_websetup import WebSetupAdapter
 from adapt_statics import StaticsAdapter, PluggedStaticsMiddleware
-from utils import call_partial
+from utils import call_partial, plug_url
 
 log = logging.getLogger('tgext.pluggable')
 
 class MissingAppIdException(Exception):
+    pass
+
+class AlreadyPluggedException(Exception):
     pass
 
 def init_pluggables(app_config):
@@ -36,11 +39,15 @@ def init_pluggables(app_config):
         if app_helpers:
             app_config._pluggable_partials_cache = {}
             app_helpers.call_partial = call_partial
+            app_helpers.plug_url = plug_url
 
     return plugged
 
 def plug(app_config, module_name, appid=None, **kwargs):
     plugged = init_pluggables(app_config)
+
+    if module_name in plugged['modules']:
+        raise AlreadyPluggedException('Pluggable application has already been plugged for this application')
 
     options = dict(appid=appid)
     options.update(kwargs)
@@ -58,7 +65,7 @@ def plug(app_config, module_name, appid=None, **kwargs):
         raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
 
     plugged['appids'][appid] = module_name
-    plugged['modules'][module_name] = dict(module_name=module_name, module=module, statics=None)
+    plugged['modules'][module_name] = dict(appid=appid, module_name=module_name, module=module, statics=None)
 
     options['appid'] = appid
 
