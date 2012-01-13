@@ -45,13 +45,25 @@ call_partial = PartialCaller()
 def mount_point(pluggable_name):
     return '/' + tg.config['tgext.pluggable.plugged']['modules'][pluggable_name]['appid']
 
+class DeferredMountPointPath(object):
+    def __init__(self, pluggable_name, path):
+        self.pluggable_name = pluggable_name
+        self.path = path
+
+    def __str__(self):
+        return mount_point(self.pluggable_name) + self.path
+
+    def startswith(self, what):
+        return str(self).startswith(what)
+
+    def __radd__(self, other):
+        return other + str(self)
+
 def plug_url(pluggable_name, path, params=None, lazy=False):
     if not params:
         params = {}
 
-    base_url = mount_point(pluggable_name)
-    base_url += path
     if lazy:
-        return tg.lurl(base_url, params=params)
+        return tg.lurl(DeferredMountPointPath(pluggable_name, path), params=params)
     else:
-        return tg.url(base_url, params=params)
+        return tg.url(DeferredMountPointPath(pluggable_name, path), params=params)
