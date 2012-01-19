@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys
+import sys, os
 
 try:
     from setuptools import setup, find_packages
@@ -13,10 +13,17 @@ install_requires=[
     "tgext.pluggable"
 ]
 
+here = os.path.abspath(os.path.dirname(__file__))
+try:
+    README = open(os.path.join(here, 'README.rst')).read()
+except IOError:
+    README = ''
+
 setup(
     name='{{project}}',
     version='0.1',
     description='',
+    long_description=README,
     author='',
     author_email='',
     #url='',
