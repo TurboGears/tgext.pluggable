@@ -14,9 +14,9 @@ def replace_template_hook(remainder, params, output):
     decoration = Decoration.get_decoration(dispatch_state.method)
 
     if 'tg.locals' in req.environ:
-        content_type, engine, template, exclude_names = decoration.lookup_template_engine(req.environ['tg.locals'])
+        content_type, engine, template, exclude_names = decoration.lookup_template_engine(req.environ['tg.locals'])[:4]
     else:
-        content_type, engine, template, exclude_names = decoration.lookup_template_engine(req)
+        content_type, engine, template, exclude_names = decoration.lookup_template_engine(req)[:4]
 
     replaced_template = config._pluggable_templates_replacements.get(template)
     if replaced_template:

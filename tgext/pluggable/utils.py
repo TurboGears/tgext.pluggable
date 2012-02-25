@@ -17,7 +17,7 @@ class PartialCaller(object):
             controller = current()
         else:
             controller = current
-
+    
         func = getattr(controller, func)
         return func
 
@@ -38,7 +38,7 @@ class PartialCaller(object):
         replaced_template = config.get('_pluggable_templates_replacements', {}).get(template_name)
         if replaced_template:
             engine_name, template_name = replaced_template.split(':', 1)
-        return tg_render(template_vars=result, template_engine=engine_name, template_name=template_name)
+        return tg_render(template_vars=result, template_engine=engine_name, template_name=template_name, doctype=None)
 
 call_partial = PartialCaller()
 
