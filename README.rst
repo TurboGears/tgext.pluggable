@@ -4,8 +4,6 @@ About Pluggable Apps
 tgext.pluggable permits to plug extensions and applications inside a TG projects
 much like the Django Apps.
 
-**tgext.pluggable** IS STILL EXPERIMENTAL AND MIGHT CHANGE IN THE FUTURE
-
 Installing
 -------------------------------
 
