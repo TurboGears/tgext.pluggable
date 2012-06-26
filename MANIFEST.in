@@ -1,2 +1,2 @@
-recursive-include pluggable/commands/templates *
+recursive-include tgext/pluggable/commands/templates *
 global-exclude *.pyc
