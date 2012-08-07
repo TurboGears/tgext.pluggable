@@ -1,6 +1,7 @@
 import sys, tg
 from tg.decorators import Decoration
 from tg.render import render as tg_render
+from tg.exceptions import HTTPFound
 
 class PartialCaller(object):
     def resolve(self, path):
@@ -67,3 +68,7 @@ def plug_url(pluggable_name, path, params=None, lazy=False):
         return tg.lurl(DeferredMountPointPath(pluggable_name, path), params=params)
     else:
         return tg.url(DeferredMountPointPath(pluggable_name, path), params=params)
+
+def plug_redirect(pluggable_name, path, params=None):
+    url = plug_url(pluggable_name, path, params)
+    raise HTTPFound(location=url).exception
