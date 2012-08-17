@@ -51,10 +51,8 @@ def plug(app_config, module_name, appid=None, **kwargs):
 
     options = dict(appid=appid)
     options.update(kwargs)
-    
-    module = __import__(module_name, globals(), locals(),
-                        ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
-                        -1)
+
+    module = __import__(module_name, globals(), locals(), ['plugme'], -1)
 
     log.info('Plugging %s', module_name)
     module_options = module.plugme(app_config, options)
@@ -63,6 +61,10 @@ def plug(app_config, module_name, appid=None, **kwargs):
 
     if not appid:
         raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
+
+    module = __import__(module_name, globals(), locals(),
+        ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
+        -1)
 
     plugged['appids'][appid] = module_name
     plugged['modules'][module_name] = dict(appid=appid, module_name=module_name, module=module, statics=None)
