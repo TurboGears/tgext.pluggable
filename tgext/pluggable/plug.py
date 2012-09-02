@@ -49,18 +49,22 @@ def plug(app_config, module_name, appid=None, **kwargs):
     if module_name in plugged['modules']:
         raise AlreadyPluggedException('Pluggable application has already been plugged for this application')
 
-    options = dict(appid=appid)
-    options.update(kwargs)
-
     module = __import__(module_name, globals(), locals(), ['plugme'], -1)
 
+    plug_options = dict(appid=appid)
+    plug_options.update(kwargs)
+
     log.info('Plugging %s', module_name)
-    module_options = module.plugme(app_config, options)
+    module_options = module.plugme(app_config, plug_options)
     if not appid:
         appid = module_options.get('appid')
 
     if not appid:
         raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
+
+    options = dict()
+    options.update(module_options)
+    options.update(plug_options)
 
     module = __import__(module_name, globals(), locals(),
         ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
