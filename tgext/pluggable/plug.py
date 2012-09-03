@@ -1,4 +1,4 @@
-import logging, inspect
+import logging, inspect, traceback
 from adapt_models import ModelsAdapter, app_model
 from adapt_controllers import ControllersAdapter
 from adapt_websetup import WebSetupAdapter
@@ -43,71 +43,90 @@ def init_pluggables(app_config):
 
     return plugged
 
+class ApplicationPlugger(object):
+    def __init__(self, plugged, app_config, module_name, appid, kwargs):
+        super(ApplicationPlugger, self).__init__()
+        self.plugged = plugged
+        self.app_config = app_config
+        self.module_name = module_name
+        self.appid = appid
+        self.kwargs = kwargs
+
+    def plug(self):
+        try:
+            module = __import__(self.module_name, globals(), locals(), ['plugme'], -1)
+
+            plug_options = dict(appid=self.appid)
+            plug_options.update(self.kwargs)
+
+            log.info('Plugging %s', self.module_name)
+            module_options = module.plugme(self.app_config, plug_options)
+            if not self.appid:
+                self.appid = module_options.get('appid')
+
+            if not self.appid:
+                raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
+
+            options = dict()
+            options.update(module_options)
+            options.update(plug_options)
+            options['appid'] = self.appid
+
+            return self._plug_application(self.app_config, self.module_name, options)
+        except:
+            log.exception('Failed to plug %s' % self.module_name)
+
+    def _plug_application(self, app_config, module_name, options):
+        module = __import__(module_name, globals(), locals(),
+            ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
+            -1)
+
+        appid = options['appid']
+
+        self.plugged['appids'][appid] = module_name
+        self.plugged['modules'][module_name] = dict(appid=appid, module_name=module_name, module=module, statics=None)
+
+        if hasattr(module, 'model') and options.get('plug_models', True):
+            models_adapter = ModelsAdapter(app_config, module.model, options)
+            models_adapter.adapt_tables()
+            models_adapter.init_model()
+
+        if hasattr(module, 'helpers') and options.get('plug_helpers', True):
+            try:
+                app_helpers = app_config.package.lib.helpers
+            except:
+                app_helpers = None
+
+            if app_helpers:
+                setattr(app_helpers, module_name, module.helpers)
+
+                if options.get('global_helpers', False):
+                    for name, impl in inspect.getmembers(module.helpers):
+                        if name.startswith('_'):
+                            continue
+
+                        if not hasattr(app_helpers, name):
+                            setattr(app_helpers, name, impl)
+                        else:
+                            log.warning('%s helper already existing, skipping it' % name)
+
+        if hasattr(module, 'controllers') and options.get('plug_controller', True):
+            controllers_adapter = ControllersAdapter(app_config, module.controllers, options)
+            app_config.register_hook('after_config', controllers_adapter.mount_controllers)
+
+        if hasattr(module, 'bootstrap') and options.get('plug_bootstrap', True):
+            websetup_adapter = WebSetupAdapter(app_config, module, options)
+            websetup_adapter.adapt_bootstrap()
+
+        if hasattr(module, 'public') and options.get('plug_statics', True):
+            statics_adapter = StaticsAdapter(app_config, module, options)
+            statics_adapter.register_statics(module_name, self.plugged)
+
 def plug(app_config, module_name, appid=None, **kwargs):
     plugged = init_pluggables(app_config)
 
     if module_name in plugged['modules']:
         raise AlreadyPluggedException('Pluggable application has already been plugged for this application')
 
-    module = __import__(module_name, globals(), locals(), ['plugme'], -1)
-
-    plug_options = dict(appid=appid)
-    plug_options.update(kwargs)
-
-    log.info('Plugging %s', module_name)
-    module_options = module.plugme(app_config, plug_options)
-    if not appid:
-        appid = module_options.get('appid')
-
-    if not appid:
-        raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
-
-    options = dict()
-    options.update(module_options)
-    options.update(plug_options)
-
-    module = __import__(module_name, globals(), locals(),
-        ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
-        -1)
-
-    plugged['appids'][appid] = module_name
-    plugged['modules'][module_name] = dict(appid=appid, module_name=module_name, module=module, statics=None)
-
-    options['appid'] = appid
-
-    if hasattr(module, 'model') and options.get('plug_models', True):
-        models_adapter = ModelsAdapter(app_config, module.model, options)
-        app_config.register_hook('startup', models_adapter.adapt_tables)
-        app_config.register_hook('startup', models_adapter.init_model)
-
-    if hasattr(module, 'helpers') and options.get('plug_helpers', True):
-        try:
-            app_helpers = app_config.package.lib.helpers
-        except:
-            app_helpers = None
-
-        if app_helpers:
-            setattr(app_helpers, module_name, module.helpers)
-
-            if module_options.get('global_helpers', False):
-                for name, impl in inspect.getmembers(module.helpers):
-                    if name.startswith('_'):
-                        continue
-
-                    if not hasattr(app_helpers, name):
-                        setattr(app_helpers, name, impl)
-                    else:
-                        log.warning('%s helper already existing, skipping it' % name)
-
-    if hasattr(module, 'controllers') and options.get('plug_controller', True):
-        controllers_adapter = ControllersAdapter(app_config, module.controllers, options)
-        app_config.register_hook('after_config', controllers_adapter.mount_controllers)
-
-    if hasattr(module, 'bootstrap') and options.get('plug_bootstrap', True):
-        websetup_adapter = WebSetupAdapter(app_config, module, options)
-        app_config.register_hook('startup', websetup_adapter.adapt_bootstrap)
-
-    if hasattr(module, 'public') and options.get('plug_statics', True):
-        statics_adapter = StaticsAdapter(app_config, module, options)
-        statics_adapter.register_statics(module_name, plugged)
-
+    plugger = ApplicationPlugger(plugged, app_config, module_name, appid, kwargs)
+    app_config.register_hook('startup', plugger.plug)
