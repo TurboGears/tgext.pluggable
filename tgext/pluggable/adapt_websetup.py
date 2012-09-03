@@ -32,6 +32,9 @@ class WebSetupAdapter(object):
         self.module_name = module.__name__
 
     def adapt_bootstrap(self):
+        #Import application websetup if not already available
+        __import__(self.config['package'].__name__, globals(), locals(), ['websetup'])
+
         current_bootstrap = self.config['package'].websetup.bootstrap
         current_bootstrap.bootstrap = PluggedBootstrap(self.module_name,
                                                        current_bootstrap.bootstrap,
