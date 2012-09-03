@@ -1,3 +1,4 @@
+import tg
 import logging, inspect, traceback
 from adapt_models import ModelsAdapter, app_model
 from adapt_controllers import ControllersAdapter
@@ -44,35 +45,16 @@ def init_pluggables(app_config):
     return plugged
 
 class ApplicationPlugger(object):
-    def __init__(self, plugged, app_config, module_name, appid, kwargs):
+    def __init__(self, plugged, app_config, module_name, options):
         super(ApplicationPlugger, self).__init__()
         self.plugged = plugged
         self.app_config = app_config
         self.module_name = module_name
-        self.appid = appid
-        self.kwargs = kwargs
+        self.options = options
 
     def plug(self):
         try:
-            module = __import__(self.module_name, globals(), locals(), ['plugme'], -1)
-
-            plug_options = dict(appid=self.appid)
-            plug_options.update(self.kwargs)
-
-            log.info('Plugging %s', self.module_name)
-            module_options = module.plugme(self.app_config, plug_options)
-            if not self.appid:
-                self.appid = module_options.get('appid')
-
-            if not self.appid:
-                raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
-
-            options = dict()
-            options.update(module_options)
-            options.update(plug_options)
-            options['appid'] = self.appid
-
-            return self._plug_application(self.app_config, self.module_name, options)
+            self._plug_application(self.app_config, self.module_name, self.options)
         except:
             log.exception('Failed to plug %s' % self.module_name)
 
@@ -128,5 +110,31 @@ def plug(app_config, module_name, appid=None, **kwargs):
     if module_name in plugged['modules']:
         raise AlreadyPluggedException('Pluggable application has already been plugged for this application')
 
-    plugger = ApplicationPlugger(plugged, app_config, module_name, appid, kwargs)
+
+    module = __import__(module_name, globals(), locals(), ['plugme'], -1)
+
+    plug_options = dict(appid=appid)
+    plug_options.update(kwargs)
+
+    log.info('Plugging %s', module_name)
+    module_options = module.plugme(app_config, plug_options)
+    if not appid:
+        appid = module_options.get('appid')
+
+    if not appid:
+        raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
+
+    options = dict()
+    options.update(module_options)
+    options.update(plug_options)
+    options['appid'] = appid
+
+    plugger = ApplicationPlugger(plugged, app_config, module_name, options)
     app_config.register_hook('startup', plugger.plug)
+
+def plugged():
+    plugged = tg.config.get('tgext.pluggable.plugged', None)
+    if not plugged:
+        return []
+
+    return plugged['modules'].keys()
