@@ -108,8 +108,28 @@ After enabling the *plugtest* application you should run
 to create the sample model. Then you can access the sample
 application page though *http://localhost:8080/plugtest*
 
+The plugme Entry Point
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pluggable applications are required to implement a **plugme(app_config, options)** entry
+point which will be called when plugging the application.
+
+The plugme action is called before TurboGears configuration has been loaded so that
+it is possible to register more pluggables inside the plugme hook. This way a pluggable
+can plug any dependency it requires just by calling tgext.pluggable.plug inside its own
+*plugme* function.
+
+Any options passed to the plug call will be available inside the options dictionary,
+other parts of the pluggable applications like controllers, models and so on will be
+imported after the call to plugme so that plugme can set any configuration options that
+will drive the behavior of the other parts.
+
+Keep in mind that as plugme is called before loading the TurboGears configuration if you
+need to perform something based on any configuration file option you must register a *setup*
+from the plugme call and perform them there.
+
 Accessing Application Models from Pluggable Apps
----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When creating a pluggable application you might often need to
 access to some models that have been declared inside the
@@ -144,3 +164,7 @@ is used. For example to generate an url relative to the *plugtest* pluggable
 it is possible to call plug_url::
 
     plug_url('plugtest', '/')
+
+To perform redirects inside a pluggable app the **plug_redirect(pluggable, path, params=None)**
+function is provided. This function exposes the same interface as *plug_url* but
+performs a redirect much like tg.redirect.
