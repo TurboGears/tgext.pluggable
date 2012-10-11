@@ -1,3 +1,5 @@
+import tg
+
 class PluggableSession(object):
     """
     Provides a Session wrapper that can be used by pluggable
@@ -26,6 +28,11 @@ class TargetAppModel(object):
 
     def configure(self, models):
         self.wrapped_module = models
+
+    def plugged(self, pluggable):
+        plugged = tg.config.get('tgext.pluggable.plugged', {}).get('modules', {})
+        if pluggable in plugged:
+            return plugged[pluggable]['module'].model
 
     def __getattr__(self, item):
         return getattr(self.wrapped_module, item)

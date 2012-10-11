@@ -20,14 +20,20 @@ class ModelsAdapter(object):
             self.models.init_model(self.config['DBSession'])
 
     def adapt_tables(self):
-        project_DeclarativeBase = self.config['model'].DeclarativeBase
+        app_model = self.config['model']
+        project_DeclarativeBase = app_model.DeclarativeBase
 
+        merge_models = self.options.get('global_models', False)
         app_id = self.options['appid']
         for model in self._get_tables(self.models):
+            if merge_models:
+                setattr(app_model, model.__name__, model)
+
             if self.options.get('rename_tables', False) and app_id:
                 model.__tablename__ = app_id + '_' + model.__tablename__
                 model.__table__.name = model.__tablename__
             model.__table__.tometadata(project_DeclarativeBase.metadata)
+
 
 def primary_key(model):
     return model.__mapper__.primary_key[0]
