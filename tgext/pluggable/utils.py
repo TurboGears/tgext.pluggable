@@ -39,7 +39,14 @@ class PartialCaller(object):
         replaced_template = config.get('_pluggable_templates_replacements', {}).get(template_name)
         if replaced_template:
             engine_name, template_name = replaced_template.split(':', 1)
-        return tg_render(template_vars=result, template_engine=engine_name, template_name=template_name, doctype=None)
+
+        #Avoid placing the doctype declaration in genshi templates
+        render_params = {}
+        if engine_name == 'genshi':
+            render_params['doctype'] = None
+
+        return tg_render(template_vars=result, template_engine=engine_name, template_name=template_name,
+                         **render_params)
 
 call_partial = PartialCaller()
 
