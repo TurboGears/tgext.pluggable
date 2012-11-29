@@ -25,7 +25,7 @@ class ControllersAdapter(object):
                 if isinstance(cont, tg.controllers.decoratedcontroller._DecoratedControllerMeta):
                     for n, c in cont.__dict__.items():
                         if hasattr(c, 'decoration') and c.decoration.exposed:
-                            if app_id == controller.get('path') and n == controller.get('name'):
+                            if n == controller:
                                 print "Blocked '%s' in '%s'" % (n, app_id)
                                 c.decoration.hooks['before_validate'] = [block_function]
 
