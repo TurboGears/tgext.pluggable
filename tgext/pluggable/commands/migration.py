@@ -79,9 +79,16 @@ Apply migrations::
         conf = ConfigParser.ConfigParser()
         conf.read(self.options.ini)
 
-        self.name = self.args.pop(0)
-        self.repository = os.path.join(pkg_resources.get_distribution(self.name).location, 'migration')
-        print self.name, self.repository
+        self.name = pkg_resources.safe_name(self.args.pop(0))
+        try:
+            self.repository = os.path.join(pkg_resources.get_distribution(self.name).location, 'migration')
+        except pkg_resources.DistributionNotFound:
+            print "pluggable %s not found" % self.name
+            return
+
+        if not os.path.exists(self.repository) and not self.args[0]=='create':
+            print "pluggable not ready for migrations"
+            return
 
         try:
             self.dburi = conf.get(sect, option, vars={'here':os.getcwd()})
@@ -89,8 +96,9 @@ Apply migrations::
             print "Unable to read config file or missing sqlalchemy.url in app:main section"
             return
 
-        print "Migrations repository '%s',\ndatabase url '%s'\n"%(self.name, self.dburi)
+        print "Migrations repository '%s',\ndatabase url '%s'\n"%(self.repository, self.dburi)
         if not self.args:
             self.args = ['help']
         sys.argv[0] = sys.argv[0] + ' migrate'
-        main(argv=self.args, url=self.dburi, repository=self.repository, name=self.name)
+        tablename = self.name.replace('-', '_').replace('.', '_') + '_migrate'
+        main(argv=self.args, url=self.dburi, repository=self.repository, name=self.name, version_table=tablename)
