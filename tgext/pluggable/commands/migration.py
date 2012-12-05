@@ -79,6 +79,10 @@ Apply migrations::
         conf = ConfigParser.ConfigParser()
         conf.read(self.options.ini)
 
+        if not self.args or self.args[0] == 'help':
+            self.args = ['help']
+            return main(self.args)
+
         self.name = pkg_resources.safe_name(self.args.pop(0))
         try:
             self.repository = os.path.join(pkg_resources.get_distribution(self.name).location, 'migration')
@@ -87,7 +91,8 @@ Apply migrations::
             return
 
         if not os.path.exists(self.repository) and not self.args[0]=='create':
-            print "pluggable not ready for migrations"
+            print """pluggable not ready for migrations, please run paster migrate-pluggable PLUGNAME create and
+paster migrate-pluggable PLUGNAME version_control"""
             return
 
         try:
@@ -97,8 +102,6 @@ Apply migrations::
             return
 
         print "Migrations repository '%s',\ndatabase url '%s'\n"%(self.repository, self.dburi)
-        if not self.args:
-            self.args = ['help']
         sys.argv[0] = sys.argv[0] + ' migrate'
         tablename = self.name.replace('-', '_').replace('.', '_') + '_migrate'
         main(argv=self.args, url=self.dburi, repository=self.repository, name=self.name, version_table=tablename)
