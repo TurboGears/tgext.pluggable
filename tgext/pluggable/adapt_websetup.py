@@ -1,4 +1,7 @@
-import transaction
+try:
+    import transaction
+except ImportError:
+    transaction = None
 
 class PluggedBootstrap(object):
     def __init__(self, module_name, previous_bootstrap, plugin_bootstrap):
@@ -7,6 +10,9 @@ class PluggedBootstrap(object):
         self.plugin_bootstrap = plugin_bootstrap
 
     def __call__(self, command, conf, vars):
+        if not transaction:
+            print 'Transaction module not available, this might lead to issues'
+
         #Call previous bootstrap
         self.previous_bootstrap(command, conf, vars)
 
@@ -14,12 +20,12 @@ class PluggedBootstrap(object):
         from sqlalchemy.exc import IntegrityError
         try:
             self.plugin_bootstrap(command, conf, vars)
-            transaction.commit()
+            transaction and transaction.commit()
         except IntegrityError:
             print 'Warning, there was a problem running %s bootstrap, might have already been already performed' % self.module_name
             import traceback
             print traceback.format_exc()
-            transaction.abort()
+            transaction and transaction.abort()
             print 'Continuing with bootstrapping...'
 
 
