@@ -35,6 +35,7 @@ setup(name='tgext.pluggable',
       entry_points="""
         [paste.global_paster_command]
         quickstart-pluggable = tgext.pluggable.commands.quickstart:QuickstartPluggableCommand
+        migrate-pluggable = tgext.pluggable.commands.migration:MigrateCommand
         [paste.paster_create_template]
         quickstart-pluggable-template=tgext.pluggable.commands.quickstart:QuickstartPluggableTemplate
       """,
