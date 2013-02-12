@@ -168,3 +168,76 @@ it is possible to call plug_url::
 To perform redirects inside a pluggable app the **plug_redirect(pluggable, path, params=None)**
 function is provided. This function exposes the same interface as *plug_url* but
 performs a redirect much like tg.redirect.
+
+Managing Migrations
+-------------------------------------
+
+It is possible to initialize a migrations repository for a pluggable application.
+This makes possible to evolve the database at later times for each pluggable application.
+
+Create Migration Repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To be able to manage migrations the pluggable has to be initialized with a migration repository
+to perform so, the author of the pluggable application has to run::
+
+    $ paster migrate-pluggable plugtest create
+
+Then to create migration scripts run::
+
+    $ paster migrate-pluggable plugtest script 'Add column for user_name'
+
+A file named `001_Add_column_for_user_name.py` will be available inside the `migration/versions` directory
+of the pluggable application.
+*Remember to add this directory to your distribution package to make it available to users of your pluggable application*
+
+Using Migrations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the pluggable application your are using supports migrations it is possible to apply them
+using the `upgrade` and `downgrade` commands. If is the first time your application runs a migration
+for such a pluggable it is necessary to run the `version_control` command before any other::
+
+    $ paster migrate-pluggable plugtest version_control
+
+Then it is possible to run `upgrade` to move forward::
+
+    $ paster migrate-pluggable plugtest upgrade
+    0 -> 1...
+    done
+
+Or `downgrade` to revert a migration::
+
+    $ paster migrate-pluggable plugtest upgrade 0
+    1 -> 0...
+    done
+
+The versioning commands support being called on all the pluggables enabled inside your application
+by specifying `all` as the pluggable name. This will load your application to detect the plugged
+apps and will run the specified command for each one of them::
+
+    $ paster migrate-pluggable all db_version
+    Plugging plug1
+    Plugging plug2
+    Plugging plug3
+    Migrating plug1, plug3, plug2
+
+    plug1 Migrations
+        Repository '/tmp/migrt/plug1/migration'
+        Database 'sqlite:////tmp/migrt/coreapp/devdata.db'
+        Versioning Table 'plug1_migrate'
+    0
+
+    plug3 Migrations
+        Repository '/tmp/migrt/plug3/migration'
+        Database 'sqlite:////tmp/migrt/coreapp/devdata.db'
+        Versioning Table 'plug3_migrate'
+    0
+
+    plug2 Migrations
+        Repository '/tmp/migrt/plug2/migration'
+        Database 'sqlite:////tmp/migrt/coreapp/devdata.db'
+        Versioning Table 'plug2_migrate'
+    0
+
+
