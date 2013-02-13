@@ -76,7 +76,7 @@ This is useful when you want to override the template that an application
 you plugged in is exposing. To override call **replace_template** inside
 your application config::
 
-    from tgext.pluggable replace_template
+    from tgext.pluggable import replace_template
 
     replace_template(base_config, 'myapp.templates.about', 'myapp.templates.index')
 
@@ -84,6 +84,52 @@ your application config::
 won't work with templates rendered directly calling the **render** method.
 
 Calls to replace_template must be performed before the application has started.
+
+Patching Templates
+----------------------------
+
+tgext.pluggable provides a function to patch templates, the result
+of a template rendering will be passed through a list of operations which will
+make possible to alter the rendering result.
+
+This behavior is much inspired by **Deliverance** http://pythonhosted.org/Deliverance
+meant for much simpler use cases. The most common usage is for small changes to templates
+of plugged applications. For advanced manipulations using `replace_template` is suggested
+as it's both faster and easier to maintain.
+
+Template patching is enabled by using the `load_template_patches` function::
+
+    from tgext.pluggable import replace_template
+
+    load_template_patches(base_config)
+
+To load template patches from a python module (or pluggable) use::
+
+    load_template_patches(base_config, 'plugname')
+
+Template patching format is an xml file in the form of::
+
+    <patches>
+      <patch template="tgext.crud.templates.get_all">
+        <content selector="#crud_content > h1" template="myapp.templates.replacements.crud_title" />
+        <append  selector="#crud_content > h1" template="myapp.templates.replacements.crud_subtitle" />
+        <prepend selector="#crud_content > h1" template="myapp.templates.replacements.crud_superscript" />
+        <replace selector="#crud_btn_new > .add_link" template="" />
+      </patch>
+    </patches>
+
+Each action listed inside the patch will be performed whenever the specified template
+is rendered, the template associated to the action will be used as the content of the templacement
+and the same data available to the patched template will be available to the action template too.
+Available actions are:
+
+    * `content` - replaces the content of tags identified by the selector
+
+    * `append` - appends after the tags identified by the selector
+
+    * `prepend` - prepends before the tags identified by the selector
+
+    * `replace` - replaces the tags identified bt the selector.
 
 Creating Pluggable Apps
 ----------------------------
