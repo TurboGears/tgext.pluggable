@@ -42,6 +42,42 @@ Other options include:
     - plug_statics (True/False) -> Enable plugged app statics
     - rename_tables (True/False) -> Rename pluggable tables by prepending appid.
 
+Relations with Plugged Apps Models
+--------------------------------------
+
+There are cases when you might need to create a relationship or a foreign key
+with a model which is defined by a pluggable application. As pluggable application
+models are loaded after loading your application they are not available at the
+time your app models are imported.
+
+``tgext.pluggable`` provides some utilities to make easier to create relations
+with models defined by pluggable applications.
+
+The first step you might want to take is setting the ``global_models=True``
+parameter to the ``plug`` call, this will make all the models declared by the
+pluggable application available to you::
+
+    plug(base_config, 'package_name', global_models=True)
+
+After the specified pluggable application is plugged, the models will be available
+inside your code through the ``tgext.pluggable.app_model`` object.
+
+Then you can create foreign keys to the desired model using the
+``tgext.pluggable.LazyForeignKey`` class and declare relations using the lazy
+version of ``sqlalchemy.orm.relation``::
+
+    from tgext.pluggable import app_model, LazyForeignKey
+
+    class AdditionalInfo(DeclarativeBase):
+        __tablename__ = 'sample_model'
+
+        uid = Column(Integer, primary_key=True)
+        data = Column(Unicode(255), nullable=False)
+
+        plugged_model_id = Column(Integer, LazyForeignKey(lambda:app_model.PluggedModel.uid))
+        plugged_model = relation(lambda: app_model.PluggedModel)
+
+
 Partials
 --------------------------
 

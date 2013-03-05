@@ -1,5 +1,6 @@
 import inspect
 from session_wrapper import TargetAppModel
+from sqlalchemy import ForeignKey
 
 app_model = TargetAppModel()
 
@@ -34,6 +35,14 @@ class ModelsAdapter(object):
                 model.__table__.name = model.__tablename__
             model.__table__.tometadata(project_DeclarativeBase.metadata)
 
-
 def primary_key(model):
     return model.__mapper__.primary_key[0]
+
+class LazyForeignKey(ForeignKey):
+    @property
+    def _colspec(self):
+        return self._original_colspec()
+
+    @_colspec.setter
+    def _colspec(self, value):
+        self._original_colspec = value
