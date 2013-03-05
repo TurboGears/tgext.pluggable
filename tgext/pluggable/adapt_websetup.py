@@ -42,6 +42,11 @@ class WebSetupAdapter(object):
         __import__(self.config['package'].__name__, globals(), locals(), ['websetup'])
 
         current_bootstrap = self.config['package'].websetup.bootstrap
+        if callable(current_bootstrap):
+            parent_bootstrap = current_bootstrap
+        else:
+            parent_bootstrap = current_bootstrap.bootstrap
+
         current_bootstrap.bootstrap = PluggedBootstrap(self.module_name,
-                                                       current_bootstrap.bootstrap,
+                                                       parent_bootstrap,
                                                        self.plugin_bootstrap)
