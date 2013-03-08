@@ -41,12 +41,15 @@ class WebSetupAdapter(object):
         #Import application websetup if not already available
         __import__(self.config['package'].__name__, globals(), locals(), ['websetup'])
 
-        current_bootstrap = self.config['package'].websetup.bootstrap
-        if callable(current_bootstrap):
-            parent_bootstrap = current_bootstrap
-        else:
-            parent_bootstrap = current_bootstrap.bootstrap
+        websetup = self.config['package'].websetup
 
-        current_bootstrap.bootstrap = PluggedBootstrap(self.module_name,
-                                                       parent_bootstrap,
-                                                       self.plugin_bootstrap)
+        if callable(websetup.bootstrap):
+            parent_bootstrap = websetup.bootstrap
+            bootstrap_module = websetup
+        else:
+            parent_bootstrap = websetup.bootstrap.bootstrap
+            bootstrap_module = websetup.bootstrap
+
+        bootstrap_module.bootstrap = PluggedBootstrap(self.module_name,
+                                                      parent_bootstrap,
+                                                      self.plugin_bootstrap)
