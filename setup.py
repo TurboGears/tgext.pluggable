@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.1.4'
+version = '0.2.0'
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -30,13 +30,12 @@ setup(name='tgext.pluggable',
       package_data = {'':['*.html', '*.js', '*.css', '*.png', '*.gif']},
       zip_safe=False,
       install_requires=[
-        "TurboGears2 >= 2.1.4",
+        "TurboGears2 >= 2.2.0",
+        "gearbox"
       ],
-      entry_points="""
-        [paste.global_paster_command]
-        quickstart-pluggable = tgext.pluggable.commands.quickstart:QuickstartPluggableCommand
-        migrate-pluggable = tgext.pluggable.commands.migration:MigrateCommand
-        [paste.paster_create_template]
-        quickstart-pluggable-template=tgext.pluggable.commands.quickstart:QuickstartPluggableTemplate
-      """,
-      )
+      entry_points={
+          'gearbox.commands': [
+              'quickstart-pluggable = tgext.pluggable.commands.quickstart:QuickstartPluggableCommand',
+              'sqla-migrate-pluggable = tgext.pluggable.commands.migration:MigrateCommand'
+          ]
+      })

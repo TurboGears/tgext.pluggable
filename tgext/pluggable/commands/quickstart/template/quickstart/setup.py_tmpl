@@ -28,8 +28,6 @@ setup(
     author_email='',
     #url='',
     keywords='turbogears2.application',
-    setup_requires=["PasteScript >= 1.7"],
-    paster_plugins={{egg_plugins}},
     packages=find_packages(exclude=['ez_setup']),
     install_requires=install_requires,
     include_package_data=True,
@@ -38,8 +36,5 @@ setup(
                                  'public/*/*']},
     entry_points="""
     """,
-    dependency_links=[
-        "http://www.turbogears.org/2.1/downloads/current/"
-        ],
     zip_safe=False
 )

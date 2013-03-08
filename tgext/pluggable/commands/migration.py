@@ -1,78 +1,80 @@
 """
 tgext.pluggable migration
 
-paster migrate-pluggable command integrate sqlalchemy-migrate into tgext.pluggable.
+gearbox sqla-migrate-pluggable command integrate sqlalchemy-migrate into tgext.pluggable.
 
 To start a migration, run command::
 
-    $ paster migrate-pluggable create
+    $ gearbox sqla-migrate-pluggable create
 
-And migrate-pluggable command will create a 'migration' directory for you.
-With migrate-pluggable command you don't need use 'manage.py' in 'migration' directory anymore.
+And sqla-migrate-pluggable command will create a 'migration' directory for you.
+With sqla-migrate-pluggable command you don't need use 'manage.py' in 'migration' directory anymore.
 
 Then you could bind the database with migration with command::
 
-    $ paster migrate-pluggable version_control
+    $ gearbox sqla-migrate-pluggable version_control
 
 Usage:
 
 .. parsed-literal::
 
-   paster migrate-pluggable PLUGNAME help
-   paster migrate-pluggable PLUGNAME create
-   paster migrate-pluggable PLUGNAME vc|version_control
-   paster migrate-pluggable PLUGNAME dbv|db_version
-   paster migrate-pluggable PLUGNAME v|version
-   paster migrate-pluggable PLUGNAME manage [script.py]
-   paster migrate-pluggable PLUGNAME test [script.py]
-   paster migrate-pluggable PLUGNAME ci|commit [script.py]
-   paster migrate-pluggable PLUGNAME up|upgrade [--version]
-   paster migrate-pluggable PLUGNAME downgrade [--version]
+   gearbox sqla-migrate-pluggable PLUGNAME help
+   gearbox sqla-migrate-pluggable PLUGNAME create
+   gearbox sqla-migrate-pluggable PLUGNAME vc|version_control
+   gearbox sqla-migrate-pluggable PLUGNAME dbv|db_version
+   gearbox sqla-migrate-pluggable PLUGNAME v|version
+   gearbox sqla-migrate-pluggable PLUGNAME manage [script.py]
+   gearbox sqla-migrate-pluggable PLUGNAME test [script.py]
+   gearbox sqla-migrate-pluggable PLUGNAME ci|commit [script.py]
+   gearbox sqla-migrate-pluggable PLUGNAME up|upgrade [--version]
+   gearbox sqla-migrate-pluggable PLUGNAME downgrade [--version]
 
-.. container:: paster-usage
-
-  --version
-      database's version number
 
 check http://code.google.com/p/sqlalchemy-migrate/wiki/MigrateVersioning for detail.
 
 """
+from __future__ import print_function
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 
 import pkg_resources
-from paste.script import command
-import os, sys, logging
-import ConfigParser
-from migrate.exceptions import DatabaseAlreadyControlledError, DatabaseNotControlledError
-from migrate.versioning.shell import main
-from paste.deploy import loadapp
+from gearbox.command import Command
+import os, sys, logging, argparse
 from tgext.pluggable import plugged
+from paste.deploy import loadapp
 
-class MigrateCommand(command.Command):
+class MigrateCommand(Command):
     """Create and apply SQLAlchemy migrations
 Migrations will be managed inside the 'migration/versions' directory
 
-Usage: paster migrate-pluggable PLUGNAME COMMAND ...
-Use 'paster migrate-pluggable PLUGNAME help' to get list of commands and their usage
+Usage: gearbox sqla-migrate-pluggable PLUGNAME COMMAND ...
+Use 'gearbox sqla-migrate-pluggable PLUGNAME help' to get list of commands and their usage
 
 Create a new migration::
 
-    $ paster migrate-pluggable PLUGNAME script 'Add New Things'
+    $ gearbox sqla-migrate-pluggable PLUGNAME script 'Add New Things'
 
 Apply migrations::
 
-    $ paster migrate-pluggable PLUGNAME upgrade
+    $ gearbox sqla-migrate-pluggable PLUGNAME upgrade
 """
 
-    version = pkg_resources.get_distribution('tgext.pluggable').version
-    min_args_error = __doc__
-    summary = __doc__.splitlines()[0]
-    usage = '\n' + __doc__
-    group_name = "TurboGears2"
+    def get_description(self):
+        return self.__doc__
 
-    parser = command.Command.standard_parser(verbose=True)
-    parser.add_option("-c", "--config",
-        help='application config file to read (default: development.ini)',
-        dest='ini', default="development.ini")
+    def get_parser(self, prog_name):
+        parser = super(MigrateCommand, self).get_parser(prog_name)
+        parser.formatter_class = argparse.RawDescriptionHelpFormatter
+
+        parser.add_argument("-c", "--config",
+            help='application config file to read (default: development.ini)',
+            dest='ini', default="development.ini")
+
+        parser.add_argument('args', nargs='*')
+
+        return parser
 
     def _setup_logging(self):
         """
@@ -108,7 +110,7 @@ Apply migrations::
         try:
             return os.path.join(pkg_resources.get_distribution(pluggable).location, 'migration')
         except pkg_resources.DistributionNotFound:
-            print "%s - pluggable not found" % pluggable
+            print("%s - pluggable not found" % pluggable)
             return None
 
     def _detect_loaded_pluggables(self):
@@ -116,16 +118,18 @@ Apply migrations::
         return plugged()
 
     def _perform_migration(self, pluggable):
+        from migrate.versioning.shell import main
+
         repository = self._pluggable_repository(pluggable)
         if repository is None or not os.path.exists(repository):
-            print "%s - Pluggable does not support migrations" % pluggable
+            print("%s - Pluggable does not support migrations" % pluggable)
             return
 
         tablename = self._pluggable_tablename(pluggable)
-        print '\n%s Migrations' % pluggable
-        print "\tRepository '%s'" % repository
-        print "\tDatabase '%s'" % self.dburi
-        print "\tVersioning Table '%s'" % tablename
+        print('\n%s Migrations' % pluggable)
+        print("\tRepository '%s'" % repository)
+        print("\tDatabase '%s'" % self.dburi)
+        print("\tVersioning Table '%s'" % tablename)
 
         #disable logging, this is due to sqlalchemy-migrate bug that
         #causes the disable_logging option to ignored
@@ -135,14 +139,16 @@ Apply migrations::
              version_table=tablename, disable_logging=True)
 
     def _perform_appless_action(self, pluggable):
+        from migrate.versioning.shell import main
+
         repository = self._pluggable_repository(pluggable)
         if repository is None:
             return
 
         tablename = self._pluggable_tablename(pluggable)
-        print "\n%s Migrations" % pluggable
-        print "\tRepository '%s'" % repository
-        print "\tVersioning Table '%s'" % tablename
+        print("\n%s Migrations" % pluggable)
+        print("\tRepository '%s'" % repository)
+        print("\tVersioning Table '%s'" % tablename)
 
         #disable logging, this is due to sqlalchemy-migrate bug that
         #causes the disable_logging option to ignored
@@ -151,7 +157,17 @@ Apply migrations::
         main(argv=args, url=None, repository=repository, name=pluggable,
              version_table=tablename, disable_logging=True)
 
-    def command(self):
+    def take_action(self, opts):
+        #Work-around for SQLA0.8 being incompatible with sqlalchemy-migrate
+        import sqlalchemy
+        sqlalchemy.exceptions = sqlalchemy.exc
+
+        from migrate.versioning.shell import main
+        from migrate.exceptions import DatabaseAlreadyControlledError, DatabaseNotControlledError
+
+        self.args = opts.args
+        self.options = opts
+
         if len(self.args) < 2 or self.args[0] == 'help':
             self.args = ['help']
             return main(self.args)
@@ -165,15 +181,15 @@ Apply migrations::
             return
 
         # get sqlalchemy.url config in app:mains
-        conf = ConfigParser.ConfigParser()
-        conf.read(self.options.ini)
+        conf = ConfigParser()
+        conf.read(opts.ini)
 
         try:
             sect = 'app:main'
             option = 'sqlalchemy.url'
             self.dburi = conf.get(sect, option, vars={'here':os.getcwd()})
         except:
-            print "Unable to read config file or missing sqlalchemy.url in app:main section"
+            print("Unable to read config file or missing sqlalchemy.url in app:main section")
             return
 
         pluggables_to_migrate = []
@@ -182,12 +198,12 @@ Apply migrations::
         else:
             pluggables_to_migrate.append(name)
 
-        print 'Migrating', ', '.join(pluggables_to_migrate)
+        print('Migrating', ', '.join(pluggables_to_migrate))
         for pluggable in pluggables_to_migrate:
             try:
                 self._perform_migration(pluggable)
             except DatabaseAlreadyControlledError:
-                print 'Pluggable already under version control...'
+                print('Pluggable already under version control...')
             except DatabaseNotControlledError:
-                print 'Your application is not under version control for this pluggable'
-                print 'Please run the version_control command before performing any other action.'
+                print('Your application is not under version control for this pluggable')
+                print('Please run the version_control command before performing any other action.')
