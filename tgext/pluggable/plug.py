@@ -59,6 +59,11 @@ class ApplicationPlugger(object):
             log.exception('Failed to plug %s' % self.module_name)
 
     def _plug_application(self, app_config, module_name, options):
+        #In some cases the application is reloaded causing the startup hook to trigger again,
+        #avoid plugging things over and over in such case.
+        if module_name in self.plugged['modules']:
+            return
+
         module = __import__(module_name, globals(), locals(),
             ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
             -1)
