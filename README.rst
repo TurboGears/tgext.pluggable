@@ -173,7 +173,7 @@ Creating Pluggable Apps
 tgext.pluggable provides a **quickstart-pluggable** command
 to create a new pluggable application::
 
-    $ paster quickstart-pluggable plugtest
+    $ gearbox quickstart-pluggable plugtest
     Enter package name [plugtest]:
     ...
 
@@ -186,7 +186,7 @@ inside any TurboGears using::
     plug(base_config, 'plugtest')
 
 After enabling the *plugtest* application you should run
-*paster setup-app development.ini* inside your TurboGears project
+*gearbox setup-app* inside your TurboGears project
 to create the sample model. Then you can access the sample
 application page though *http://localhost:8080/plugtest*
 
@@ -255,7 +255,9 @@ Managing Migrations
 -------------------------------------
 
 It is possible to initialize a migrations repository for a pluggable application.
-This makes possible to evolve the database at later times for each pluggable application.
+This makes possible to evolve the database at later times for each pluggable application using
+the `alembic <http://alembic.readthedocs.org/en/latest/tutorial.html#create-a-migration-script>`_ migration
+library for SQLAlchemy.
 
 Create Migration Repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -263,13 +265,13 @@ Create Migration Repository
 To be able to manage migrations the pluggable has to be initialized with a migration repository
 to perform so, the author of the pluggable application has to run::
 
-    $ paster migrate-pluggable plugtest create
+    $ gearbox migrate-pluggable plugtest init
 
 Then to create migration scripts run::
 
-    $ paster migrate-pluggable plugtest script 'Add column for user_name'
+    $ gearbox migrate-pluggable plugtest create 'Add column for user_name'
 
-A file named `001_Add_column_for_user_name.py` will be available inside the `migration/versions` directory
+A file named like `2c8c79324a5e_Add_column_for_user_name.py` will be available inside the `migration/versions` directory
 of the pluggable application.
 *Remember to add this directory to your distribution package to make it available to users of your pluggable application*
 
@@ -277,49 +279,51 @@ Using Migrations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If the pluggable application your are using supports migrations it is possible to apply them
-using the `upgrade` and `downgrade` commands. If is the first time your application runs a migration
-for such a pluggable it is necessary to run the `version_control` command before any other::
+using the `upgrade` and `downgrade` commands.
 
-    $ paster migrate-pluggable plugtest version_control
+It is possible to run `upgrade` to move forward::
 
-Then it is possible to run `upgrade` to move forward::
-
-    $ paster migrate-pluggable plugtest upgrade
-    0 -> 1...
-    done
+    $ gearbox migrate-pluggable plugtest upgrade
+    22:11:28,029 INFO  [alembic.migration] Running upgrade None -> 3ca22a16fdcc
 
 Or `downgrade` to revert a migration::
 
-    $ paster migrate-pluggable plugtest upgrade 0
-    1 -> 0...
-    done
+    $ gearbox migrate-pluggable plugtest downgrade
+    22:15:24,004 INFO  [alembic.migration] Running downgrade 3ca22a16fdcc -> None
 
 The versioning commands support being called on all the pluggables enabled inside your application
 by specifying `all` as the pluggable name. This will load your application to detect the plugged
 apps and will run the specified command for each one of them::
 
-    $ paster migrate-pluggable all db_version
-    Plugging plug1
-    Plugging plug2
-    Plugging plug3
+    $ gearbox migrate-pluggable all db_version
+    22:15:54,104 INFO  [tgext.pluggable] Plugging plug1
+    22:15:54,105 INFO  [tgext.pluggable] Plugging plug2
+    22:15:54,106 INFO  [tgext.pluggable] Plugging plug3
     Migrating plug1, plug3, plug2
-
+    
     plug1 Migrations
-        Repository '/tmp/migrt/plug1/migration'
-        Database 'sqlite:////tmp/migrt/coreapp/devdata.db'
+        Repository '/tmp/PLUGS/plug1/migration'
+        Configuration File 'development.ini'
         Versioning Table 'plug1_migrate'
-    0
-
+    22:15:54,249 INFO  [alembic.migration] Context impl SQLiteImpl.
+    22:15:54,249 INFO  [alembic.migration] Will assume transactional DDL.
+    Current revision for sqlite:////tmp/provaapp/devdata.db: 4edef05cc346 -> 1ae930148d69 (head), fourth migration
+    
     plug3 Migrations
-        Repository '/tmp/migrt/plug3/migration'
-        Database 'sqlite:////tmp/migrt/coreapp/devdata.db'
+        Repository '/tmp/PLUGS/plug3/migration'
+        Configuration File 'development.ini'
         Versioning Table 'plug3_migrate'
-    0
-
+    22:15:54,253 INFO  [alembic.migration] Context impl SQLiteImpl.
+    22:15:54,254 INFO  [alembic.migration] Will assume transactional DDL.
+    Current revision for sqlite:////tmp/provaapp/devdata.db: 15819683bb72 -> 453f571f41e4 (head), test migration
+    
     plug2 Migrations
-        Repository '/tmp/migrt/plug2/migration'
-        Database 'sqlite:////tmp/migrt/coreapp/devdata.db'
+        Repository '/tmp/PLUGS/plug2/migration'
+        Configuration File 'development.ini'
         Versioning Table 'plug2_migrate'
-    0
-
-
+    22:15:54,258 INFO  [alembic.migration] Context impl SQLiteImpl.
+    22:15:54,259 INFO  [alembic.migration] Will assume transactional DDL.
+    Current revision for sqlite:////tmp/provaapp/devdata.db: 154b4f69cbd1 -> 2c8c79324a5e (head), third migration
+    
+    
+    

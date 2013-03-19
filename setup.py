@@ -36,6 +36,7 @@ setup(name='tgext.pluggable',
       entry_points={
           'gearbox.commands': [
               'quickstart-pluggable = tgext.pluggable.commands.quickstart:QuickstartPluggableCommand',
-              'sqla-migrate-pluggable = tgext.pluggable.commands.migration:MigrateCommand'
+              'sqla-migrate-pluggable = tgext.pluggable.commands.migration:MigrateCommand',
+              'migrate-pluggable = tgext.pluggable.commands.alembic_migration:MigrateCommand'
           ]
       })
