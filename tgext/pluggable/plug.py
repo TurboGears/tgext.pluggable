@@ -24,7 +24,8 @@ def init_pluggables(app_config):
 
     if first_init:
         #Hook Application models
-        app_model.configure(app_config['model'])
+        if app_config.get('model'):
+            app_model.configure(app_config['model'])
 
         #Enable plugged statics
         def enable_statics_middleware(app):
