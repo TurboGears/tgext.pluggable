@@ -2,7 +2,8 @@
 
 """WebHelpers used in {{project}}."""
 
-from webhelpers import date, feedgenerator, html, number, misc, text
+#from webhelpers import date, feedgenerator, html, number, misc, text
+from markupsafe import Markup
 
 def bold(text):
-    return html.literal('<strong>%s</strong>' % text)
+    return Markup('<strong>%s</strong>' % text)

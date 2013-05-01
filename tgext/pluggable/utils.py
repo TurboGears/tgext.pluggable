@@ -35,7 +35,8 @@ class PartialCaller(object):
             return result
 
         #Expect partials not to expose more than one template
-        engine_name, template_name, exclude_names = Decoration.get_decoration(func).engines.values()[0][:3]
+        available_engines = list(Decoration.get_decoration(func).engines.values())
+        engine_name, template_name, exclude_names = available_engines[0][:3]
         replaced_template = config.get('_pluggable_templates_replacements', {}).get(template_name)
         if replaced_template:
             engine_name, template_name = replaced_template.split(':', 1)

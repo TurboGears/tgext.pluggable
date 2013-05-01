@@ -1,6 +1,6 @@
 import inspect
-from session_wrapper import TargetAppModel
 from sqlalchemy import ForeignKey
+from .session_wrapper import TargetAppModel
 
 app_model = TargetAppModel()
 

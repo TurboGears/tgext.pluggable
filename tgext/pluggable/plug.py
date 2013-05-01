@@ -1,10 +1,10 @@
 import tg
 import logging, inspect, traceback
-from adapt_models import ModelsAdapter, app_model
-from adapt_controllers import ControllersAdapter
-from adapt_websetup import WebSetupAdapter
-from adapt_statics import StaticsAdapter, PluggedStaticsMiddleware
-from utils import call_partial, plug_url
+from .adapt_models import ModelsAdapter, app_model
+from .adapt_controllers import ControllersAdapter
+from .adapt_websetup import WebSetupAdapter
+from .adapt_statics import StaticsAdapter, PluggedStaticsMiddleware
+from .utils import call_partial, plug_url
 
 log = logging.getLogger('tgext.pluggable')
 

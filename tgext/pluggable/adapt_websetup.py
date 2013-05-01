@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 try:
     import transaction
 except ImportError:
@@ -11,7 +13,7 @@ class PluggedBootstrap(object):
 
     def __call__(self, command, conf, vars):
         if not transaction:
-            print 'Transaction module not available, this might lead to issues'
+            print('Transaction module not available, this might lead to issues')
 
         #Call previous bootstrap
         self.previous_bootstrap(command, conf, vars)
@@ -22,11 +24,11 @@ class PluggedBootstrap(object):
             self.plugin_bootstrap(command, conf, vars)
             transaction and transaction.commit()
         except IntegrityError:
-            print 'Warning, there was a problem running %s bootstrap, might have already been already performed' % self.module_name
+            print('Warning, there was a problem running %s bootstrap, might have already been already performed' % self.module_name)
             import traceback
-            print traceback.format_exc()
+            print(traceback.format_exc())
             transaction and transaction.abort()
-            print 'Continuing with bootstrapping...'
+            print('Continuing with bootstrapping...')
 
 
 class WebSetupAdapter(object):
