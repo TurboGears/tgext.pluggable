@@ -225,7 +225,7 @@ defining a ``plugme`` function like::
     from tgext.scss import SCSSMiddleware
 
     def plugme(app_config, options):
-        return dict(appid='many2manyplug', global_helpers=False, static_middlewares=[SCSSMiddleware])
+        return dict(appid='plugtest', global_helpers=False, static_middlewares=[SCSSMiddleware])
   
 Accessing Application Models from Pluggable Apps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
