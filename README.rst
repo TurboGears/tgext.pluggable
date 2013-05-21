@@ -210,6 +210,23 @@ Keep in mind that as plugme is called before loading the TurboGears configuratio
 need to perform something based on any configuration file option you must register a *setup*
 from the plugme call and perform them there.
 
+Changing Static Files Behavior
++++++++++++++++++++++++++++++++++++
+
+By default every pluggable application serves all the static files available inside
+its public directory as they are. This is performed by a WSGI application which is
+in charge of serving the static files. Since version 0.2.1 it is now possible to
+replace this application or apply any WSGI middleware to it through the
+``static_middlewares`` option.
+
+For example you can enable SCSS inside your pluggable application by
+defining a ``plugme`` function like::
+
+    from tgext.scss import SCSSMiddleware
+
+    def plugme(app_config, options):
+        return dict(appid='many2manyplug', global_helpers=False, static_middlewares=[SCSSMiddleware])
+  
 Accessing Application Models from Pluggable Apps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
