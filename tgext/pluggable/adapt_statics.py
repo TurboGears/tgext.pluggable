@@ -38,4 +38,10 @@ class StaticsAdapter(object):
 
     def register_statics(self, module_name, plugged):
         if plugged['modules'][module_name]['statics'] is None:
-            plugged['modules'][module_name]['statics'] = DirectoryApp(self.public_path)
+            statics_app = DirectoryApp(self.public_path)
+
+            static_middlewares = self.options.get('static_middlewares', [])
+            for middleware in static_middlewares:
+                statics_app = middleware(statics_app, self.public_path)
+
+            plugged['modules'][module_name]['statics'] = statics_app
