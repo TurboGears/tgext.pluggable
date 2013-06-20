@@ -10,7 +10,9 @@ from gearbox.command import TemplateCommand
 import os, argparse
 from tgext.pluggable import plugged
 from paste.deploy import loadapp
-from collections import namedtuple
+
+class TemplateOptions:
+    pass
 
 class MigrateCommand(TemplateCommand):
     """Create and apply SQLAlchemy migrations
@@ -102,7 +104,8 @@ Downgrade version::
             self._perform_migration(pluggable, opts)
 
     def command_init(self, opts, pluggable_opts):
-        template_options = namedtuple('TemplateOptions', ['alembic_cfg', 'tablename'])(**pluggable_opts)
+        template_options = TemplateOptions()
+        template_options.__dict__.update(pluggable_opts)
         self.run_template('migration', template_options)
 
     def command_create(self, opts, pluggable_opts):
