@@ -104,9 +104,12 @@ Downgrade version::
             self._perform_migration(pluggable, opts)
 
     def command_init(self, opts, pluggable_opts):
+        cfg = pluggable_opts['alembic_cfg']
+        repository = cfg.get_main_option('script_location')
+
         template_options = TemplateOptions()
         template_options.__dict__.update(pluggable_opts)
-        self.run_template('migration', template_options)
+        self.run_template(repository, template_options)
 
     def command_create(self, opts, pluggable_opts):
         self.alembic_commands.revision(pluggable_opts['alembic_cfg'], opts.name)
@@ -128,11 +131,13 @@ Downgrade version::
         return pluggable.replace('-', '_').replace('.', '_') + '_migrate'
 
     def _pluggable_repository(self, pluggable):
-        try:
-            return os.path.join(pkg_resources.get_distribution(pluggable).location, 'migration')
-        except pkg_resources.DistributionNotFound:
-            print("%s - pluggable not found, or not installed" % pluggable)
-            return None
+         try:
+             module = __import__(pluggable)
+             location = module.__path__[0]
+             return os.path.join(location, 'migration')
+         except ImportError:
+             print("%s - pluggable not found, or not installed" % pluggable)
+             return None
 
     def _detect_loaded_pluggables(self, opts):
         app = loadapp('config:%s' % opts.config, relative_to=os.getcwd())
@@ -172,7 +177,7 @@ Downgrade version::
         print("\tVersioning Table '%s'" % tablename)
 
         alembic_cfg = Config()
-        alembic_cfg.set_main_option("script_location", 'migration')
+        alembic_cfg.set_main_option("script_location", repository)
 
         command = getattr(self, 'command_%s' % opts.command)
         command(opts, {'alembic_cfg':alembic_cfg,
