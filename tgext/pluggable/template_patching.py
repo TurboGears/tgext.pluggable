@@ -139,9 +139,13 @@ def _import_etree():
         try:
             from lxml import html as _html
             from lxml import etree as _etree
+        except ImportError:
+            log.error('Template patching requires lxml, please install lxml before using it')
+
+        try:
             from lxml import cssselect as _cssselect
         except ImportError:
-            log.error('Template patching requires lxml, please install lxml before installing it')
+            log.error('Template patching requires cssselect, please install cssselect before using it')
 
 def _parse_patchfile(patches, patches_file):
     _import_etree()
