@@ -1,6 +1,6 @@
 from functools import partial
 
-from tg import request, response, config
+from tg import request, response, config, tmpl_context
 from tg.decorators import Decoration, override_template
 
 def replace_template_hook(remainder, params, output):
@@ -11,7 +11,12 @@ def replace_template_hook(remainder, params, output):
     except:
         dispatch_state = req.controller_state
 
-    decoration = Decoration.get_decoration(dispatch_state.method)
+    try:
+        controller = req.validation['error_handler'] or dispatch_state.method
+    except AttributeError:
+        controller = dispatch_state.method
+
+    decoration = Decoration.get_decoration(controller)
 
     if 'tg.locals' in req.environ:
         content_type, engine, template, exclude_names = decoration.lookup_template_engine(req.environ['tg.locals'])[:4]
@@ -20,7 +25,7 @@ def replace_template_hook(remainder, params, output):
 
     replaced_template = config._pluggable_templates_replacements.get(template)
     if replaced_template:
-        override_template(dispatch_state.method, replaced_template)
+        override_template(controller, replaced_template)
 
 def init_replacements(app_config):
     try:
