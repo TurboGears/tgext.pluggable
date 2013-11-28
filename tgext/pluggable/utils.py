@@ -68,14 +68,14 @@ class DeferredMountPointPath(object):
     def __radd__(self, other):
         return other + str(self)
 
-def plug_url(pluggable_name, path, params=None, lazy=False):
+def plug_url(pluggable_name, path, params=None, lazy=False, qualified=False):
     if not params:
         params = {}
 
     if lazy:
-        return tg.lurl(DeferredMountPointPath(pluggable_name, path), params=params)
+        return tg.lurl(DeferredMountPointPath(pluggable_name, path), params=params, qualified=qualified)
     else:
-        return tg.url(DeferredMountPointPath(pluggable_name, path), params=params)
+        return tg.url(DeferredMountPointPath(pluggable_name, path), params=params, qualified=qualified)
 
 def plug_redirect(pluggable_name, path, params=None):
     url = plug_url(pluggable_name, path, params)
