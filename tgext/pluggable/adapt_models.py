@@ -20,7 +20,10 @@ class ModelsAdapter(object):
             self.models.init_model(self.config['DBSession'])
 
     def adapt_tables(self):
-        app_model = self.config['model']
+        app_model = self.config.get('model')
+        if app_model is None:
+            return
+
         project_DeclarativeBase = app_model.DeclarativeBase
 
         merge_models = self.options.get('global_models', False)
