@@ -1,9 +1,15 @@
 from __future__ import print_function
+import logging
 
 try:
     import transaction
 except ImportError:
     transaction = None
+
+from .exceptions import DBIntegrityErrors
+
+log = logging.getLogger('tgext.pluggable')
+
 
 class PluggedBootstrap(object):
     def __init__(self, module_name, previous_bootstrap, plugin_bootstrap):
@@ -13,22 +19,19 @@ class PluggedBootstrap(object):
 
     def __call__(self, command, conf, vars):
         if not transaction:
-            print('Transaction module not available, this might lead to issues')
+            log.warn('Transaction module not available...')
 
         #Call previous bootstrap
         self.previous_bootstrap(command, conf, vars)
 
         #Call this pluggable app bootstrap
-        from sqlalchemy.exc import IntegrityError
         try:
             self.plugin_bootstrap(command, conf, vars)
             transaction and transaction.commit()
-        except IntegrityError:
-            print('Warning, there was a problem running %s bootstrap, might have already been already performed' % self.module_name)
-            import traceback
-            print(traceback.format_exc())
+        except DBIntegrityErrors:
+            log.exception('Warning, there was a problem running %s bootstrap, might have already been already performed', self.module_name)
             transaction and transaction.abort()
-            print('Continuing with bootstrapping...')
+            log.error('Continuing with bootstrapping...')
 
 
 class WebSetupAdapter(object):
