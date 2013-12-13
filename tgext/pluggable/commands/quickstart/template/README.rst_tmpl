@@ -8,7 +8,7 @@ Installing
 
 {{package}} can be installed both from pypi or from bitbucket::
 
-    easy_install {{package}}
+    pip install {{package}}
 
 should just work for most of the users
 
@@ -23,7 +23,7 @@ Then at the *end of the file* call plug with {{package}}::
 
     plug(base_config, '{{package}}')
 
-You will be able to access the registration process at
+You will be able to access the plugged application at
 *http://localhost:8080/{{package}}*.
 
 Available Hooks
