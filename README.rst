@@ -135,13 +135,20 @@ as it's both faster and easier to maintain.
 
 Template patching is enabled by using the `load_template_patches` function::
 
-    from tgext.pluggable import replace_template
+    from tgext.pluggable import load_template_patches
 
     load_template_patches(base_config)
+
+Supposing your project is inside a Python distribution named **myapp** this will
+load the ``template_patches.xml`` file from the root of the distribution and will
+apply all the specified patches.
 
 To load template patches from a python module (or pluggable) use::
 
     load_template_patches(base_config, 'plugname')
+
+You can use previous expression even to load patches from your own application
+in case the distribution automatic detection failed.
 
 Template patching format is an xml file in the form of::
 
