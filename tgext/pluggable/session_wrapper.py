@@ -1,6 +1,18 @@
 import tg
 
-class PluggableSession(object):
+
+class LazyProxy(object):
+    def __init__(self):
+        self._proxied = None
+
+    def configure(self, obj):
+        self._proxied = obj
+
+    def __getattr__(self, item):
+        return getattr(self._proxied, item)
+
+
+class PluggableSession(LazyProxy):
     """
     Provides a Session wrapper that can be used by pluggable
     applications that will proxy the application session
@@ -8,31 +20,23 @@ class PluggableSession(object):
     """
 
     def __init__(self):
-        self.wrapped_session = None
+        super(PluggableSession, self).__init__()
+        # This is required for Ming support, should be ignored by SQLAlchemy
+        self.impl = LazyProxy()
 
     def configure(self, session):
-        self.wrapped_session = session
+        super(PluggableSession, self).configure(session)
+        self.impl.configure(getattr(session, 'impl', None))
 
-    def __getattr__(self, item):
-        return getattr(self.wrapped_session, item)
 
-class TargetAppModel(object):
+class TargetAppModel(LazyProxy):
     """
     Provides a proxy to the application models,
     it is set up by tgext.pluggable to wrap
     the application models at startup.
     """
-
-    def __init__(self):
-        self.wrapped_module = None
-
-    def configure(self, models):
-        self.wrapped_module = models
-
     def plugged(self, pluggable):
         plugged = tg.config.get('tgext.pluggable.plugged', {}).get('modules', {})
         if pluggable in plugged:
             return plugged[pluggable]['module'].model
 
-    def __getattr__(self, item):
-        return getattr(self.wrapped_module, item)

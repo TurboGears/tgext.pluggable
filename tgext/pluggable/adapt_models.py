@@ -1,6 +1,18 @@
 import inspect
+import logging
 from .session_wrapper import TargetAppModel
 
+try:
+    from .sqla.models import SQLAModelsSupport
+except ImportError:
+    pass
+
+try:
+    from .ming.models import MingModelsSupport
+except ImportError:
+    pass
+
+log = logging.getLogger('tgext.pluggable')
 app_model = TargetAppModel()
 
 class ModelsAdapter(object):
@@ -8,32 +20,43 @@ class ModelsAdapter(object):
         self.config = config
         self.models = models
         self.options = options
+        self.support = None
 
-    def _is_table(self, entry):
-        return inspect.isclass(entry) and hasattr(entry, '__tablename__')
+        self._init_models_support()
 
-    def _get_tables(self, model):
-        return [entry for name,entry in inspect.getmembers(self.models) if self._is_table(entry)]
-
-    def init_model(self):
-        if hasattr(self.models, 'init_model'):
-            self.models.init_model(self.config['DBSession'])
-
-    def adapt_tables(self):
-        app_model = self.config.get('model')
+    def _init_models_support(self):
+        app_model = getattr(self.config['package'], 'model', None)
         if app_model is None:
             return
 
-        project_DeclarativeBase = app_model.DeclarativeBase
+        if self.config.get('use_sqlalchemy'):
+            self.support = SQLAModelsSupport()
+        elif self.config.get('use_ming'):
+            self.support = MingModelsSupport()
+
+    def _get_entities(self, model):
+        return [entry for name,entry in inspect.getmembers(self.models) if self.support.is_model(entry)]
+
+    def init_model(self):
+        if self.support is None:
+            return
+
+        if hasattr(self.models, 'init_model'):
+            DBSession = self.config.get('DBSession')
+            if DBSession is None:
+                log.warn("Pluggable requires a database, but application didn't provide an DBSession property for AppConfig")
+                return
+
+            self.models.init_model(DBSession)
+
+    def adapt_tables(self):
+        if self.support is None:
+            return
 
         merge_models = self.options.get('global_models', False)
-        app_id = self.options['appid']
-        for model in self._get_tables(self.models):
+        for model in self._get_entities(self.models):
             if merge_models:
                 setattr(app_model, model.__name__, model)
 
-            if self.options.get('rename_tables', False) and app_id:
-                model.__tablename__ = app_id + '_' + model.__tablename__
-                model.__table__.name = model.__tablename__
-            model.__table__.tometadata(project_DeclarativeBase.metadata)
+            self.support.merge_model(app_model, model, **self.options)
 
