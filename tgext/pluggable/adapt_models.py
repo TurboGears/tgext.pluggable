@@ -37,6 +37,3 @@ class ModelsAdapter(object):
                 model.__table__.name = model.__tablename__
             model.__table__.tometadata(project_DeclarativeBase.metadata)
 
-def primary_key(model):
-    return model.__mapper__.primary_key[0]
-
