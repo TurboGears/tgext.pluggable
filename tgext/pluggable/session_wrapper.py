@@ -1,4 +1,5 @@
 import tg
+from tg.decorators import cached_property
 
 
 class LazyProxy(object):
@@ -27,6 +28,10 @@ class PluggableSession(LazyProxy):
     def configure(self, session):
         super(PluggableSession, self).configure(session)
         self.impl.configure(getattr(session, 'impl', None))
+
+    @cached_property
+    def wrapped_session(self):
+        return self._proxied
 
 
 class TargetAppModel(LazyProxy):
