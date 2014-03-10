@@ -1,5 +1,5 @@
 import tg
-from tg.decorators import cached_property
+from tg.caching import cached_property
 
 
 class LazyProxy(object):
