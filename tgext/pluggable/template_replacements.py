@@ -25,7 +25,7 @@ def replace_template_hook(remainder, params, output):
 
     replaced_template = config._pluggable_templates_replacements.get(template)
     if replaced_template:
-        override_template(controller, replaced_template)
+        override_template(decoration.controller, replaced_template)
 
 def init_replacements(app_config):
     try:
