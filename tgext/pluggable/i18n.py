@@ -24,12 +24,17 @@ lazy_ungettext = lazify(ungettext)
 def _get_translator(pluggable_name):
     app_translator = translator._current_obj()
 
-    pluggable_translator = getattr(app_translator, 'pluggable_translator', None)
+    pluggable_translators = getattr(app_translator, 'pluggable_translators', None)
+    if pluggable_translators is None:
+        pluggable_translators = {}
+        app_translator.pluggable_translators = pluggable_translators
+
+    pluggable_translator = pluggable_translators.get(pluggable_name)
     if pluggable_translator is None:
         pluggable_translator = copy.copy(app_translator)
         pluggable_translator.add_fallback(_translator_for_pluggable(app_translator,
                                                                     pluggable_name))
-        app_translator.pluggable_translator = pluggable_translator
+        pluggable_translators[pluggable_name] = pluggable_translator
 
     return pluggable_translator
 
