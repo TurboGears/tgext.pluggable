@@ -275,6 +275,21 @@ To perform redirects inside a pluggable app the **plug_redirect(pluggable, path,
 function is provided. This function exposes the same interface as *plug_url* but
 performs a redirect much like tg.redirect.
 
+Internationalization
+-------------------------------------
+
+tgext.pluggable provides some utilities for to manage text translations inside
+pluggables. Each quickstarted pluggable application provides ``_`` and ``l_``
+functions inside its own ``lib.i18n`` module, those work much like TurboGears
+ones, but read the translations from the i18n directory of the pluggable application
+where the translation catalogs are provided.
+
+Messages extration and catalog creation/update work as in TurboGears using
+Babel. Just run inside the pluggable application the ``python setup.py extract_messages``
+, ``python setup.py init_catalog -l LANG`` and ``python setup.py compile_catalog``
+commands to create a catalog for ``LANG`` and use it with the functions provided
+by the ``lib.i18n`` module inside your own pluggable. 
+
 Managing Migrations
 -------------------------------------
 
