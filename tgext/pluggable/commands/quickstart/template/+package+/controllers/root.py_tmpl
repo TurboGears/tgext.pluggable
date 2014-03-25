@@ -3,8 +3,8 @@
 
 from tg import TGController
 from tg import expose, flash, require, url, lurl, request, redirect, validate
+from tg.i18n import ugettext as _
 
-from {{package}}.lib.i18n import p_ as _, lp_ as l_
 from {{package}} import model
 from {{package}}.model import DBSession
 

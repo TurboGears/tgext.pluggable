@@ -279,16 +279,18 @@ Internationalization
 -------------------------------------
 
 tgext.pluggable provides some utilities for to manage text translations inside
-pluggables. Each quickstarted pluggable application provides ``_`` and ``l_``
-functions inside its own ``lib.i18n`` module, those work much like TurboGears
-ones, but read the translations from the i18n directory of the pluggable application
-where the translation catalogs are provided.
-
-Messages extration and catalog creation/update work as in TurboGears using
-Babel. Just run inside the pluggable application the ``python setup.py extract_messages``
+pluggables. When ``tg.i18n.ugettext`` or ``tg.i18n.lazy_ugettext`` are used
+they will lookup for translations inside the Application and when not available
+will fallback to the translations provided by the pluggable itself.
+ 
+Messages extration and catalog creation/update for the pluggable work as in TurboGears 
+using Babel. 
+Just run inside the pluggable application the ``python setup.py extract_messages``
 , ``python setup.py init_catalog -l LANG`` and ``python setup.py compile_catalog``
-commands to create a catalog for ``LANG`` and use it with the functions provided
-by the ``lib.i18n`` module inside your own pluggable. 
+commands to create a catalog for ``LANG``.
+
+Just distribute the catalogs with your pluggable application to make them
+available and translated in applications that use it.
 
 Managing Migrations
 -------------------------------------
