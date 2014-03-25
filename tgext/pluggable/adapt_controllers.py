@@ -9,7 +9,11 @@ class ControllersAdapter(object):
     def mount_controllers(self, app):
         root_controller = TGApp().find_controller('root')
         app_id = self.options['appid']
-
-        setattr(root_controller, app_id, self.controllers.RootController())
+        path = app_id.split('.')
+        route = path.pop(0)
+        while len(path)>0:
+            root_controller = getattr(root_controller, route)
+            route = path.pop(0)
+        setattr(root_controller, route, self.controllers.RootController())
 
         return app
