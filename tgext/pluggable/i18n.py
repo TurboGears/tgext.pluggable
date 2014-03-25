@@ -1,42 +1,33 @@
 import gettext as _gettext
 
-import copy
 import os
 from tg import translator, config
-from tg.util import lazify
 from tg.i18n import LanguageError
 
-__all__ = ['ugettext', 'ungettext', 'lazy_ugettext', 'lazy_ungettext']
+from .utils import plugged
 
 
-def ugettext(pluggable_name, value):
-    tr = _get_translator(pluggable_name)
-    return tr.ugettext(value)
-lazy_ugettext = lazify(ugettext)
+def pluggable_translations_wrapper(*args):
+    if len(args) > 1:
+        # TurboGears <= 2.3.2
+        next_caller = args[1]
+        def _add_pluggable_translations(controller, remainder, params):
+            _add_pluggables_translators()
+            return next_caller(controller, remainder, params)
+    else:
+        # TurboGears >= 2.3.3
+        next_caller = args[0]
+        def _add_pluggable_translations(config, controller, remainder, params):
+            _add_pluggables_translators()
+            return next_caller(config, controller, remainder, params)
+
+    return _add_pluggable_translations
 
 
-def ungettext(pluggable_name, value):
-    tr = _get_translator(pluggable_name)
-    return tr.ungettext(value)
-lazy_ungettext = lazify(ungettext)
-
-
-def _get_translator(pluggable_name):
+def _add_pluggables_translators():
     app_translator = translator._current_obj()
-
-    pluggable_translators = getattr(app_translator, 'pluggable_translators', None)
-    if pluggable_translators is None:
-        pluggable_translators = {}
-        app_translator.pluggable_translators = pluggable_translators
-
-    pluggable_translator = pluggable_translators.get(pluggable_name)
-    if pluggable_translator is None:
-        pluggable_translator = copy.copy(app_translator)
-        pluggable_translator.add_fallback(_translator_for_pluggable(app_translator,
-                                                                    pluggable_name))
-        pluggable_translators[pluggable_name] = pluggable_translator
-
-    return pluggable_translator
+    for pluggable in plugged():
+        app_translator.add_fallback(_translator_for_pluggable(app_translator, pluggable))
 
 
 def _translator_for_pluggable(app_translator, pluggable_name):

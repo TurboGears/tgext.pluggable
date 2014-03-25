@@ -1,10 +1,10 @@
-import tg
-import logging, inspect, traceback
+import logging, inspect
 from .adapt_models import ModelsAdapter, app_model
 from .adapt_controllers import ControllersAdapter
 from .adapt_websetup import WebSetupAdapter
 from .adapt_statics import StaticsAdapter, PluggedStaticsMiddleware
 from .utils import call_partial, plug_url
+from .i18n import pluggable_translations_wrapper
 
 log = logging.getLogger('tgext.pluggable')
 
@@ -31,6 +31,7 @@ def init_pluggables(app_config):
         def enable_statics_middleware(app):
             return PluggedStaticsMiddleware(app, plugged)
         app_config.register_hook('after_config', enable_statics_middleware)
+        app_config.register_hook('controller_wrapper', pluggable_translations_wrapper)
 
         #Inject call_partial helper if application has helpers
         try:
@@ -138,9 +139,3 @@ def plug(app_config, module_name, appid=None, **kwargs):
     plugger = ApplicationPlugger(plugged, app_config, module_name, options)
     app_config.register_hook('startup', plugger.plug)
 
-def plugged():
-    plugged = tg.config.get('tgext.pluggable.plugged', None)
-    if not plugged:
-        return []
-
-    return plugged['modules'].keys()
