@@ -3,8 +3,8 @@
 
 from tg import TGController
 from tg import expose, flash, require, url, lurl, request, redirect, validate
-from tg.i18n import ugettext as _, lazy_ugettext as l_
 
+from {{package}}.lib.i18n import p_ as _, lp_ as l_
 from {{package}} import model
 from {{package}}.model import DBSession
 
@@ -12,4 +12,5 @@ class RootController(TGController):
     @expose('{{package}}.templates.index')
     def index(self):
         sample = DBSession.query(model.Sample).first()
+        flash(_("Hello World!"))
         return dict(sample=sample)
