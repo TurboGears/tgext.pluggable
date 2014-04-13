@@ -52,7 +52,9 @@ class PartialCaller(object):
 call_partial = PartialCaller()
 
 def mount_point(pluggable_name):
-    return '/' + tg.config['tgext.pluggable.plugged']['modules'][pluggable_name]['appid']
+    pluggable_info = tg.config['tgext.pluggable.plugged']['modules'][pluggable_name]
+    pluggable_path = pluggable_info['appid'].replace('.', '/')
+    return '/' + pluggable_path
 
 class DeferredMountPointPath(object):
     def __init__(self, pluggable_name, path):
