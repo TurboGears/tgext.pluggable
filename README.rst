@@ -9,7 +9,7 @@ Installing
 
 tgext.pluggable can be installed both from pypi or from bitbucket::
 
-    easy_install tgext.pluggable
+    pip install tgext.pluggable
 
 should just work for most of the users
 
@@ -32,6 +32,11 @@ you can mount it in a different place specifying a different
 **appid**::
 
     plug(base_config, 'package_name', 'new_app_id')
+
+If you want to mount the pluggable application in a subcontroller
+you can used a dotted **appid**, like ``subcontroller.appid``.
+Note that ``subcontroller`` must exist in RootController.
+
 
 Other options include:
 
