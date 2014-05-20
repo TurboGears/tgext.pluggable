@@ -12,14 +12,13 @@ class ControllersAdapter(object):
         
         try:
             route, name = app_id.rsplit('.', 1)
-            mountpoint = attrgetter(route)(root)
+            mountpoint = attrgetter(route)(root).__class__
         except ValueError:
             mountpoint, name = root, app_id
 
         return mountpoint, name
 
     def mount_controllers(self, app):
-        root_controller = TGApp().find_controller('root')
         app_id = self.options['appid']
 
         mountpoint, name = self._resolve_mountpoint(app_id)
