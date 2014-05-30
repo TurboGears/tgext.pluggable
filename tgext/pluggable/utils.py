@@ -85,7 +85,7 @@ def plug_url(pluggable_name, path, params=None, lazy=False, qualified=False):
 
 def plug_redirect(pluggable_name, path, params=None):
     url = plug_url(pluggable_name, path, params)
-    raise HTTPFound(location=url).exception
+    raise HTTPFound(location=url)
 
 def plugged():
     plugged = tg.config.get('tgext.pluggable.plugged', None)
