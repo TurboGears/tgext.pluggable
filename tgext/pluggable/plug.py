@@ -68,7 +68,7 @@ class ApplicationPlugger(object):
 
         module = __import__(module_name, globals(), locals(),
             ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
-            -1)
+            0)
 
         appid = options['appid']
 
