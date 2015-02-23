@@ -8,11 +8,14 @@ from .i18n import pluggable_translations_wrapper
 
 log = logging.getLogger('tgext.pluggable')
 
+
 class MissingAppIdException(Exception):
     pass
 
+
 class AlreadyPluggedException(Exception):
     pass
+
 
 def init_pluggables(app_config):
     first_init = False
@@ -46,6 +49,7 @@ def init_pluggables(app_config):
 
     return plugged
 
+
 class ApplicationPlugger(object):
     def __init__(self, plugged, app_config, module_name, options):
         super(ApplicationPlugger, self).__init__()
@@ -66,14 +70,21 @@ class ApplicationPlugger(object):
         if module_name in self.plugged['modules']:
             return
 
-        module = __import__(module_name, globals(), locals(),
+        module = __import__(
+            module_name,
+            globals(),
+            locals(),
             ['plugme', 'model', 'lib', 'helpers', 'controllers', 'bootstrap', 'public', 'partials'],
-            0)
+            0
+        )
 
         appid = options['appid']
 
         self.plugged['appids'][appid] = module_name
-        self.plugged['modules'][module_name] = dict(appid=appid, module_name=module_name, module=module, statics=None)
+        self.plugged['modules'][module_name] = dict(appid=appid,
+                                                    module_name=module_name,
+                                                    module=module,
+                                                    statics=None)
 
         if hasattr(module, 'model') and options.get('plug_models', True):
             models_adapter = ModelsAdapter(app_config, module.model, options)
@@ -101,6 +112,7 @@ class ApplicationPlugger(object):
 
         if hasattr(module, 'controllers') and options.get('plug_controller', True):
             controllers_adapter = ControllersAdapter(app_config, module.controllers, options)
+            app_config.register_hook('configure_new_app', controllers_adapter.new_app_created)
             app_config.register_hook('after_config', controllers_adapter.mount_controllers)
 
         if hasattr(module, 'bootstrap') and options.get('plug_bootstrap', True):
@@ -110,6 +122,7 @@ class ApplicationPlugger(object):
         if hasattr(module, 'public') and options.get('plug_statics', True):
             statics_adapter = StaticsAdapter(app_config, module, options)
             statics_adapter.register_statics(module_name, self.plugged)
+
 
 def plug(app_config, module_name, appid=None, **kwargs):
     plugged = init_pluggables(app_config)
