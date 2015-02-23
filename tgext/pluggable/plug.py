@@ -131,7 +131,7 @@ def plug(app_config, module_name, appid=None, **kwargs):
         raise AlreadyPluggedException('Pluggable application has already been plugged for this application')
 
 
-    module = __import__(module_name, globals(), locals(), ['plugme'], -1)
+    module = __import__(module_name, globals(), locals(), ['plugme'], 0)
 
     plug_options = dict(appid=appid)
     plug_options.update(kwargs)
