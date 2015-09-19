@@ -1,18 +1,18 @@
-About {{package}}
+About {{project}}
 -------------------------
 
-{{package}} is a Pluggable application for TurboGears2.
+{{project}} is a Pluggable application for TurboGears2.
 
 Installing
 -------------------------------
 
-{{package}} can be installed both from pypi or from bitbucket::
+{{project}} can be installed both from pypi or from bitbucket::
 
     pip install {{package}}
 
 should just work for most of the users
 
-Plugging {{package}}
+Plugging {{project}}
 ----------------------------
 
 In your application *config/app_cfg.py* import **plug**::
@@ -29,14 +29,14 @@ You will be able to access the plugged application at
 Available Hooks
 ----------------------
 
-{{package}} makes available a some hooks which will be
+{{project}} makes available a some hooks which will be
 called during some actions to alter the default
 behavior of the appplications:
 
 Exposed Partials
 ----------------------
 
-{{package}} exposes a bunch of partials which can be used
+{{project}} exposes a bunch of partials which can be used
 to render pieces of the blogging system anywhere in your
 application:
 
