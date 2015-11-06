@@ -21,12 +21,13 @@ class ModelsAdapter(object):
         self.models = models
         self.options = options
         self.support = None
+        self.tgapp_model = None
 
         self._init_models_support()
 
     def _init_models_support(self):
-        app_model = getattr(self.config['package'], 'model', None)
-        if app_model is None:
+        self.tgapp_model = getattr(self.config['package'], 'model', None)
+        if self.tgapp_model is None:
             return
 
         if self.config.get('use_sqlalchemy'):
@@ -56,7 +57,7 @@ class ModelsAdapter(object):
         merge_models = self.options.get('global_models', False)
         for model in self._get_entities(self.models):
             if merge_models:
-                setattr(app_model, model.__name__, model)
+                setattr(self.tgapp_model, model.__name__, model)
 
-            self.support.merge_model(app_model, model, **self.options)
+            self.support.merge_model(self.tgapp_model, model, **self.options)
 
