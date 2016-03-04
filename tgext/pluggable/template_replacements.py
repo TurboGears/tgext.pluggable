@@ -12,8 +12,11 @@ def replace_template_hook(remainder, params, output):
         dispatch_state = req.controller_state
 
     try:
-        controller = req.validation['error_handler'] or dispatch_state.method
-    except AttributeError:
+        if req.validation['exception']:
+            controller = req.validation['error_handler']
+        else:
+            controller = dispatch_state.method
+    except (AttributeError, KeyError):
         controller = dispatch_state.method
 
     decoration = Decoration.get_decoration(controller)
