@@ -1,0 +1,17 @@
+<html py:extends="master.xhtml" py:strip="True">
+<head py:block="head" py:strip="True">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" py:if="False"/>
+    <title py:block="master_title">Welcome to TurboGears pluggable Application</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="${tg.url('/_pluggable/{{package}}/css/style.css')}" />
+</head>
+
+<body py:block="body" py:strip="True">
+    <div py:if="request.identity">Hi ${request.identity['user']}</div>
+    <div id="hello_box">
+        <img src="${tg.url('/_pluggable/{{package}}/images/star.png')}"/>
+        Hello from, ${h.{{package}}.bold(sample.name)}
+        owned by ${sample.user}
+    </div>
+    <div>${h.call_partial('{{package}}.partials:something', name='Partial')}</div>
+</body>
+</html>

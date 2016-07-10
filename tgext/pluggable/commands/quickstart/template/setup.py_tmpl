@@ -9,7 +9,7 @@ except ImportError:
     from setuptools import setup, find_packages
 
 install_requires=[
-    "TurboGears2 >= 2.1.4",
+    "TurboGears2 >= 2.3.9",
     "tgext.pluggable"
 ]
 
@@ -21,7 +21,7 @@ except IOError:
 
 setup(
     name='{{project}}',
-    version='0.1',
+    version='0.1.0',
     description='',
     long_description=README,
     author='',
@@ -38,7 +38,7 @@ setup(
     ]},
     message_extractors={'{{package}}': [
             ('**.py', 'python', None),
-            ('templates/**.html', 'genshi', None),
+            ('templates/**.xhtml', 'kajiki', None),
             ('public/**', 'ignore', None)
     ]},
     entry_points="""

@@ -41,13 +41,15 @@ class PartialCaller(object):
         if replaced_template:
             engine_name, template_name = replaced_template.split(':', 1)
 
-        #Avoid placing the doctype declaration in genshi templates
+        # Avoid placing the doctype declaration in Genshi and Kajiki templates
         render_params = {}
         if engine_name == 'genshi':
             render_params['doctype'] = None
+        if engine_name == 'kajiki':
+            render_params['is_fragment'] = True
 
-        return tg_render(template_vars=result, template_engine=engine_name, template_name=template_name,
-                         **render_params)
+        return tg_render(template_vars=result, template_engine=engine_name,
+                         template_name=template_name, **render_params)
 
 call_partial = PartialCaller()
 

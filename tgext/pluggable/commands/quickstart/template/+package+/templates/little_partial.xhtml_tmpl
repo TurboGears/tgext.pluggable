@@ -1,0 +1,3 @@
+<div>
+    <div>This is from partial: ${h.{{package}}.bold(name)}</div>
+</div>
