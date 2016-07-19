@@ -38,8 +38,9 @@ class PlugApplicationCommand(Command):
         print('Adding dependency to {}'.format(setup_py))
         if opts.appname not in self._content(setup_py):
             patchcmd.run(_OptsDict(
+                regex=True,
                 pattern=setup_py,
-                text='install_requires',
+                text='install_requires.*=.*\\[',
                 addition="'{}', ".format(opts.appname),
                 recursive=True
             ))
