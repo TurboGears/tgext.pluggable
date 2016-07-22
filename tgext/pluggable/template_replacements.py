@@ -36,7 +36,7 @@ def init_replacements(app_config):
     except:
         templates_replacements = app_config._pluggable_templates_replacements = {}
 
-    for replaced_template, template in templates_replacements.iteritems():
+    for replaced_template, template in templates_replacements.items():
         if template in app_config.get('renderers', []):
             engine, template = template, ''
         elif ':' in template:
