@@ -96,12 +96,14 @@ def plugged():
 
     return plugged['modules'].keys()
 
-
+primary_key_real_method = None
 def primary_key(model):
-    if tg.config.get('use_sqlalchemy'):
-        from tgext.pluggable.sqla import primary_key as sqla_primary_key
-        return sqla_primary_key(model)
+    global primary_key_real_method
 
-    elif tg.config.get('use_ming'):
-        from tgext.pluggable.ming import primary_key as ming_primary_key
-        return ming_primary_key(model)
+    if primary_key_real_method is None:
+        if tg.is_saobject(model):
+            from tgext.pluggable.sqla import primary_key as primary_key_real_method
+        elif tg.is_mingobject(model):
+            from tgext.pluggable.ming import primary_key as primary_key_real_method
+
+    return primary_key_real_method(model)
