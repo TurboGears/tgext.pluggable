@@ -95,3 +95,25 @@ def plugged():
         return []
 
     return plugged['modules'].keys()
+
+primary_key_sqla = None
+primary_key_ming = None
+def primary_key(model):
+
+    from tgext.pluggable.ming.utils import is_mingclass
+    from tgext.pluggable.sqla.utils import is_sqlaclass
+
+    global primary_key_sqla
+    global primary_key_ming
+
+    if is_sqlaclass(model):
+        if primary_key_sqla == None:
+            from tgext.pluggable.sqla import primary_key as primary_key_sqla
+
+        return primary_key_sqla(model)
+
+    if is_mingclass(model):
+        if primary_key_ming == None:
+            from tgext.pluggable.ming import primary_key as primary_key_ming
+
+        return primary_key_ming(model)
