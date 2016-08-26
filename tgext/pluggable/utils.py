@@ -95,3 +95,13 @@ def plugged():
         return []
 
     return plugged['modules'].keys()
+
+
+def primary_key(model):
+    if tg.config.get('use_sqlalchemy'):
+        from tgext.pluggable.sqla import primary_key as sqla_primary_key
+        return sqla_primary_key(model)
+
+    elif tg.config.get('use_ming'):
+        from tgext.pluggable.ming import primary_key as ming_primary_key
+        return ming_primary_key(model)

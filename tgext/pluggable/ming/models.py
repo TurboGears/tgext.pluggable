@@ -8,3 +8,6 @@ class MingModelsSupport(object):
     def merge_model(self, app_models, model, **kw):
         pass
 
+
+def primary_key(entity):
+    return entity._id
