@@ -1,8 +1,13 @@
-import inspect
+from ..detect import detect_model
+
 
 class SQLAModelsSupport(object):
-    def is_model(self, model):
-        return inspect.isclass(model) and hasattr(model, '__tablename__')
+    @classmethod
+    def is_model(cls, model):
+        try:
+            return detect_model(model) == 'sqlalchemy'
+        except ValueError:
+            return False
 
     def merge_model(self, app_models, model, rename_tables=False, appid=None, **kw):
         if rename_tables and appid:

@@ -1,9 +1,13 @@
-import inspect
-from ming.odm.mapper import mapper
+from ..detect import detect_model
+
 
 class MingModelsSupport(object):
-    def is_model(self, entity):
-        return inspect.isclass(entity) and hasattr(entity, '__mongometa__')
+    @classmethod
+    def is_model(cls, model):
+        try:
+            return detect_model(model) == 'ming'
+        except ValueError:
+            return False
 
     def merge_model(self, app_models, model, **kw):
         pass

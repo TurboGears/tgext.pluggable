@@ -2,6 +2,8 @@ import sys, tg
 from tg.decorators import Decoration
 from tg.render import render as tg_render
 from tg.exceptions import HTTPFound
+from .detect import detect_model
+
 
 class PartialCaller(object):
     def resolve(self, path):
@@ -96,24 +98,14 @@ def plugged():
 
     return plugged['modules'].keys()
 
-primary_key_sqla = None
-primary_key_ming = None
+
 def primary_key(model):
+    model_type = detect_model(model)
 
-    from tgext.pluggable.ming.utils import is_mingclass
-    from tgext.pluggable.sqla.utils import is_sqlaclass
-
-    global primary_key_sqla
-    global primary_key_ming
-
-    if is_sqlaclass(model):
-        if primary_key_sqla == None:
-            from tgext.pluggable.sqla import primary_key as primary_key_sqla
-
+    if model_type == 'sqlalchemy':
+        from tgext.pluggable.sqla import primary_key as primary_key_sqla
         return primary_key_sqla(model)
 
-    if is_mingclass(model):
-        if primary_key_ming == None:
-            from tgext.pluggable.ming import primary_key as primary_key_ming
-
+    if model_type == 'ming':
+        from tgext.pluggable.ming import primary_key as primary_key_ming
         return primary_key_ming(model)
