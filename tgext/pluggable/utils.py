@@ -7,10 +7,17 @@ from .detect import detect_model
 
 class PartialCaller(object):
     def resolve(self, path):
+        path, func = path.split(':', 1)
+
+        try:
+            # Module resolution
+            __import__(path)
+        except ImportError:
+            pass
+
+        # Attribute Resolution
         module_name, path = path.split('.', 1)
         module = sys.modules[module_name]
-
-        path, func = path.split(':', 1)
 
         current = module
         for step in path.split('.'):
