@@ -34,7 +34,9 @@ def init_pluggables(app_config):
         def enable_statics_middleware(app):
             return PluggedStaticsMiddleware(app, plugged)
         app_config.register_hook('after_config', enable_statics_middleware)
-        app_config.register_hook('controller_wrapper', pluggable_translations_wrapper)
+        if app_config.get('i18n.enabled'):
+            app_config.register_hook('controller_wrapper',
+                                     pluggable_translations_wrapper)
 
         #Inject call_partial helper if application has helpers
         try:
