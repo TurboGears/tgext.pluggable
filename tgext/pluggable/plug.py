@@ -80,7 +80,7 @@ class ApplicationPlugger(object):
     def _plug_application(self, app_config, module_name, options):
         #In some cases the application is reloaded causing the startup hook to trigger again,
         #avoid plugging things over and over in such case.
-        if module_name in self.plugged['modules']:
+        if self.plugged['modules'].get(module_name):
             return
 
         module = __import__(
@@ -156,7 +156,6 @@ def plug(app_config, module_name, appid=None, **kwargs):
     if module_name in plugged['modules']:
         raise AlreadyPluggedException('Pluggable application has already been plugged for this application')
 
-
     module = __import__(module_name, globals(), locals(), ['plugme'], 0)
 
     plug_options = dict(appid=appid)
@@ -175,6 +174,8 @@ def plug(app_config, module_name, appid=None, **kwargs):
     options.update(plug_options)
     options['appid'] = appid
 
+    # Record that the pluggable is getting plugged
+    plugged['modules'][module_name] = {}
     plugger = ApplicationPlugger(plugged, app_config, module_name, options)
     app_config.register_hook('startup', plugger.plug)
 
