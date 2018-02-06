@@ -106,8 +106,11 @@ def plug_redirect(pluggable_name, path, params=None):
     raise HTTPFound(location=url)
 
 
-def plugged():
-    plugged = tg.config.get('tgext.pluggable.plugged', None)
+def plugged(config=None):
+    if config is None:
+        config = tg.config
+
+    plugged = config.get('tgext.pluggable.plugged', None)
     if not plugged:
         return []
 
