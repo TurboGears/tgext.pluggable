@@ -74,8 +74,11 @@ class ApplicationPlugger(object):
     def plug(self):
         try:
             self._plug_application(self.app_config, self.module_name, self.options)
-        except:
+        except Exception as e:
             log.exception('Failed to plug %s' % self.module_name)
+            def fail_if_failed_to_plug(remainder, params):
+                raise e
+            self.app_config.register_hook('before_validate', fail_if_failed_to_plug)
 
     def _plug_application(self, app_config, module_name, options):
         #In some cases the application is reloaded causing the startup hook to trigger again,
@@ -149,9 +152,6 @@ class ApplicationPlugger(object):
                 else:
                     log.warning('%s helper already existing, skipping it' % name)
 
-
-    
-
             
 def plug(app_config, module_name, appid=None, **kwargs):
     plugged = init_pluggables(app_config)
@@ -182,8 +182,3 @@ def plug(app_config, module_name, appid=None, **kwargs):
     plugger = ApplicationPlugger(plugged, app_config, module_name, options)
     app_config.register_hook('startup', plugger.plug)
     
-    def fail_if_failed_to_plug(remainder, params):
-        if not plugged['modules'][module_name]:
-            raise RuntimeWarning('Check your log for errors '
-                                 'while plugging %s' % module_name)
-    app_config.register_hook('before_validate', fail_if_failed_to_plug)
