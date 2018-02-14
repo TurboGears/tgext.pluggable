@@ -78,7 +78,7 @@ class ApplicationPlugger(object):
             log.exception('Failed to plug %s' % self.module_name)
             def fail_if_failed_to_plug(remainder, params):
                 raise e
-            self.app_config.register_hook('before_validate', fail_if_failed_to_plug)
+            self.app_config.register_hook('before_call', fail_if_failed_to_plug)
 
     def _plug_application(self, app_config, module_name, options):
         #In some cases the application is reloaded causing the startup hook to trigger again,
