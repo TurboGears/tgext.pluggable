@@ -72,13 +72,7 @@ class ApplicationPlugger(object):
         self.options = options
 
     def plug(self):
-        try:
-            self._plug_application(self.app_config, self.module_name, self.options)
-        except Exception as e:
-            log.exception('Failed to plug %s' % self.module_name)
-            def fail_if_failed_to_plug(remainder, params):
-                raise e
-            self.app_config.register_hook('before_call', fail_if_failed_to_plug)
+        self._plug_application(self.app_config, self.module_name, self.options)
 
     def _plug_application(self, app_config, module_name, options):
         #In some cases the application is reloaded causing the startup hook to trigger again,
@@ -182,3 +176,8 @@ def plug(app_config, module_name, appid=None, **kwargs):
     plugger = ApplicationPlugger(plugged, app_config, module_name, options)
     app_config.register_hook('startup', plugger.plug)
     
+    # prevent the application from starting if a pluggable is someway broken
+    def fail_if_failed_to_plug(app):
+        if not plugged['modules'][module_name]:
+            raise RuntimeError('%s failed. look at the exception logged above' % module_name)
+    app_config.register_hook('configure_new_app', fail_if_failed_to_plug)
