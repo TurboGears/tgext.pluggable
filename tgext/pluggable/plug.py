@@ -54,15 +54,23 @@ def plug(app_config, module_name, appid=None, **kwargs):
     options.update(plug_options)
     options['appid'] = appid
 
+    # prevent the application from starting if a pluggable is someway broken
+    def fail_if_failed_to_plug(app):
+        if not plugged['modules'][module_name]:
+            raise RuntimeError('%s failed. look at the exception logged above' % module_name)
+
     # Record that the pluggable is getting plugged
     plugged['modules'][module_name] = {}
     plugger = ApplicationPlugger(plugged, app_config, module_name, options)
+
     if isinstance(app_config, ApplicationConfigurator):
         # TG2.4+
         tg.hooks.register('initialized_config', plugger.plug)
+        tg.hooks.register('configure_new_app', fail_if_failed_to_plug)
     else:
         # TG2.3
         app_config.register_hook('startup', plugger.plug)
+        app_config.register_hook('configure_new_app', fail_if_failed_to_plug)
 
 
 class PluggablesConfigurationComponent(ConfigurationComponent):
