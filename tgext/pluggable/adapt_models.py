@@ -15,6 +15,7 @@ except ImportError:
 log = logging.getLogger('tgext.pluggable')
 app_model = TargetAppModel()
 
+
 class ModelsAdapter(object):
     def __init__(self, config, models, options):
         self.config = config

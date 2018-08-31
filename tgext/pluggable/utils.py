@@ -34,9 +34,9 @@ class PartialCaller(object):
     def __call__(self, path, **params):
         config = tg.config._current_obj()
         try:
-            func = config['_pluggable_partials_cache'][path]
+            func = config['tgext.pluggable.partials_cache'][path]
         except:
-            func = config['_pluggable_partials_cache'][path] = self.resolve(path)
+            func = config['tgext.pluggable.partials_cache'][path] = self.resolve(path)
 
         result = func(**params)
 

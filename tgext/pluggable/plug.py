@@ -1,4 +1,19 @@
 import logging, inspect
+
+import tg
+try:
+    # TG >= 2.4
+    from tg import ApplicationConfigurator
+    from tg.configurator.base import (ConfigurationComponent,
+                                      BeforeConfigConfigurationAction,
+                                      ConfigReadyConfigurationAction,
+                                      AppReadyConfigurationAction)
+except ImportError:
+    # TG < 2.4
+    class ApplicationConfigurator: pass
+    class ConfigurationComponent: pass
+
+
 from .adapt_models import ModelsAdapter, app_model
 from .adapt_controllers import ControllersAdapter
 from .adapt_websetup import WebSetupAdapter
@@ -9,39 +24,137 @@ from .i18n import pluggable_translations_wrapper
 log = logging.getLogger('tgext.pluggable')
 
 
-class MissingAppIdException(Exception):
-    pass
+def plug(app_config, module_name, appid=None, **kwargs):
+    if isinstance(app_config, ApplicationConfigurator):
+        plugged = PluggablesConfigurationComponent.initialise(app_config)
+    else:
+        plugged = init_pluggables23(app_config)
+
+    if module_name in plugged['modules']:
+        raise AlreadyPluggedException(
+            'Pluggable application has already been plugged for this application'
+        )
+
+    module = __import__(module_name, globals(), locals(), ['plugme'], 0)
+
+    plug_options = dict(appid=appid)
+    plug_options.update(kwargs)
+
+    log.info('Plugging %s', module_name)
+    module_options = module.plugme(app_config, plug_options)
+    if not appid:
+        appid = module_options.get('appid')
+
+    if not appid:
+        raise MissingAppIdException(
+            "Application doesn't provide a default id and none has been provided when plugging it")
+
+    options = dict()
+    options.update(module_options)
+    options.update(plug_options)
+    options['appid'] = appid
+
+    # Record that the pluggable is getting plugged
+    plugged['modules'][module_name] = {}
+    plugger = ApplicationPlugger(plugged, app_config, module_name, options)
+    if isinstance(app_config, ApplicationConfigurator):
+        # TG2.4+
+        tg.hooks.register('initialized_config', plugger.plug)
+    else:
+        # TG2.3
+        app_config.register_hook('startup', plugger.plug)
 
 
-class AlreadyPluggedException(Exception):
-    pass
+class PluggablesConfigurationComponent(ConfigurationComponent):
+    """Init pluggables support for TG2.4 and newer"""
+    id = "pluggables"
+
+    @classmethod
+    def initialise(cls, configurator):
+        """Init pluggables support for TG2.4+"""
+        try:
+            configurator.register(PluggablesConfigurationComponent)
+        except KeyError:
+            # Already registered
+            pass
+        return configurator.get_blueprint_value('tgext.pluggable.plugged')
+
+    def get_defaults(self):
+        return {
+            'tgext.pluggable.plugged': SharedPluggedDict(),
+            'tgext.pluggable.partials_cache': {}
+        }
+
+    def get_actions(self):
+        return (
+            BeforeConfigConfigurationAction(self._configure),
+            ConfigReadyConfigurationAction(self._setup),
+            AppReadyConfigurationAction(self._add_middleware),
+        )
+
+    def _configure(self, conf, app):
+        model = conf.get('model')
+        if model is not None:
+            app_model.configure(model)
+
+        i18n_enabled = conf.get('i18n.enabled', False)
+        if i18n_enabled:
+            configurator = conf['tg.configurator']()
+            configurator.get_component('dispatch').register_controller_wrapper(
+                pluggable_translations_wrapper
+            )
+
+    def _setup(self, conf, app):
+        # Inject call_partial helper if application has helpers
+        app_helpers = conf.get('helpers')
+        if not app_helpers:
+            return
+        app_helpers.call_partial = call_partial
+        app_helpers.plug_url = plug_url
+
+    def _add_middleware(self, conf, app):
+        plugged = conf['tgext.pluggable.plugged']
+        return PluggedStaticsMiddleware(app, plugged)
 
 
-def init_pluggables(app_config):
+def init_pluggables23(app_config):
+    """Init pluggables support for TG2.3 and lower"""
     first_init = False
     try:
         plugged = app_config['tgext.pluggable.plugged']
     except KeyError:
         first_init = True
-        plugged = app_config['tgext.pluggable.plugged'] = {'appids':{}, 'modules':{}}
+        plugged = app_config['tgext.pluggable.plugged'] = SharedPluggedDict()
+
+    try:
+        # TG2.2
+        register_tg_hook = app_config.register_hook
+    except AttributeError:
+        # TG2.3+
+        register_tg_hook = tg.hooks.register
+
+    try:
+        register_controller_wrapper = app_config.register_controller_wrapper
+    except AttributeError:
+        def register_controller_wrapper(wrapper):
+            register_tg_hook('controller_wrapper', wrapper)
 
     if first_init:
-        #Hook Application models
+        # Hook Application models
         if app_config.get('model'):
             app_model.configure(app_config['model'])
 
-        #Enable plugged statics
+        # Enable plugged statics
         def enable_statics_middleware(app):
             return PluggedStaticsMiddleware(app, plugged)
-        app_config.register_hook('after_config', enable_statics_middleware)
+        register_tg_hook('after_config', enable_statics_middleware)
         
         if app_config.get('i18n.enabled'):
-            app_config.register_hook('controller_wrapper',
-                                     pluggable_translations_wrapper)
+            register_controller_wrapper(pluggable_translations_wrapper)
 
-        app_config._pluggable_partials_cache = {}
+        app_config['tgext.pluggable.partials_cache'] = {}
 
-        #Inject call_partial helper if application has helpers
+        # Inject call_partial helper if application has helpers
         def enable_pluggable_helpers(app_helpers):
             if not app_helpers:
                 return
@@ -52,7 +165,7 @@ def init_pluggables(app_config):
             app_helpers = app_config.package.lib.helpers
         except:
             # helpers is not an attribute of lib, use what the configured app usees.
-            app_config.register_hook(
+            register_tg_hook(
                 'configure_new_app',
                 lambda app: enable_pluggable_helpers(app.config.get('helpers'))
             )
@@ -71,7 +184,7 @@ class ApplicationPlugger(object):
         self.module_name = module_name
         self.options = options
 
-    def plug(self):
+    def plug(self, configurator=None, conf=None):
         try:
             self._plug_application(self.app_config, self.module_name, self.options)
         except:
@@ -100,7 +213,7 @@ class ApplicationPlugger(object):
                                                     statics=None)
 
         if hasattr(module, 'model') and options.get('plug_models', True):
-            models_adapter = ModelsAdapter(app_config, module.model, options)
+            models_adapter = ModelsAdapter(tg.config, module.model, options)
             models_adapter.adapt_tables()
             models_adapter.init_model()
 
@@ -109,7 +222,7 @@ class ApplicationPlugger(object):
             try:
                 app_helpers = app_config.package.lib.helpers
             except:
-                app_config.register_hook(
+                tg.hooks.register(
                     'configure_new_app',
                     lambda app: self._plug_helpers(app.config.get('helpers'),
                                                    enable_global_helpers,
@@ -121,16 +234,21 @@ class ApplicationPlugger(object):
                 self._plug_helpers(app_helpers, enable_global_helpers, module_name, module)
 
         if hasattr(module, 'controllers') and options.get('plug_controller', True):
-            controllers_adapter = ControllersAdapter(app_config, module.controllers, options)
-            app_config.register_hook('configure_new_app', controllers_adapter.new_app_created)
-            app_config.register_hook('after_config', controllers_adapter.mount_controllers)
+            controllers_adapter = ControllersAdapter(tg.config, module.controllers, options)
+            tg.hooks.register('configure_new_app', controllers_adapter.new_app_created)
+            if isinstance(app_config, ApplicationConfigurator):
+                # TG2.4
+                tg.hooks.register('after_wsgi_middlewares', controllers_adapter.mount_controllers)
+            else:
+                # TG2.3
+                tg.hooks.register('after_config', controllers_adapter.mount_controllers)
 
         if hasattr(module, 'bootstrap') and options.get('plug_bootstrap', True):
-            websetup_adapter = WebSetupAdapter(app_config, module, options)
+            websetup_adapter = WebSetupAdapter(tg.config, module, options)
             websetup_adapter.adapt_bootstrap()
 
         if hasattr(module, 'public') and options.get('plug_statics', True):
-            statics_adapter = StaticsAdapter(app_config, module, options)
+            statics_adapter = StaticsAdapter(tg.config, module, options)
             statics_adapter.register_statics(module_name, self.plugged)
 
     def _plug_helpers(self, app_helpers, enable_global_helpers, module_name, module):
@@ -149,33 +267,25 @@ class ApplicationPlugger(object):
                 else:
                     log.warning('%s helper already existing, skipping it' % name)
 
-            
-def plug(app_config, module_name, appid=None, **kwargs):
-    plugged = init_pluggables(app_config)
 
-    if module_name in plugged['modules']:
-        raise AlreadyPluggedException('Pluggable application has already been plugged for this application')
+class SharedPluggedDict(object):
+    """Dictionary of plugged apps.
 
-    module = __import__(module_name, globals(), locals(), ['plugme'], 0)
+    This is shared across all apps made by the same configurator.
+    The apps are plugged against a configurator, not against a specific app,
+    so the state of plugged apps must be shared across configurator and apps.
+    """
+    def __init__(self):
+        self._data = {'appids':{}, 'modules':{}}
+    def __getitem__(self, item):
+        return self._data.__getitem__(item)
+    def __setitem__(self, key, value):
+        return self._data.__setitem__(key, value)
 
-    plug_options = dict(appid=appid)
-    plug_options.update(kwargs)
 
-    log.info('Plugging %s', module_name)
-    module_options = module.plugme(app_config, plug_options)
-    if not appid:
-        appid = module_options.get('appid')
+class MissingAppIdException(Exception):
+    pass
 
-    if not appid:
-        raise MissingAppIdException("Application doesn't provide a default id and none has been provided when plugging it")
 
-    options = dict()
-    options.update(module_options)
-    options.update(plug_options)
-    options['appid'] = appid
-
-    # Record that the pluggable is getting plugged
-    plugged['modules'][module_name] = {}
-    plugger = ApplicationPlugger(plugged, app_config, module_name, options)
-    app_config.register_hook('startup', plugger.plug)
-
+class AlreadyPluggedException(Exception):
+    pass
