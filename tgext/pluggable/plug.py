@@ -199,8 +199,8 @@ class ApplicationPlugger(object):
             log.exception('Failed to plug %s' % self.module_name)
 
     def _plug_application(self, app_config, module_name, options):
-        #In some cases the application is reloaded causing the startup hook to trigger again,
-        #avoid plugging things over and over in such case.
+        # In some cases the application is reloaded causing the startup hook to trigger again,
+        # avoid plugging things over and over in such case.
         if self.plugged['modules'].get(module_name):
             return
 
@@ -262,7 +262,6 @@ class ApplicationPlugger(object):
     def _plug_helpers(self, app_helpers, enable_global_helpers, module_name, module):
         if app_helpers is None:
             return
-        
         setattr(app_helpers, module_name, module.helpers)
 
         if enable_global_helpers:
