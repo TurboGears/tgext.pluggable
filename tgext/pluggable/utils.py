@@ -110,7 +110,14 @@ def plugged(config=None):
     if config is None:
         config = tg.config
 
-    plugged = config.get('tgext.pluggable.plugged', None)
+    try:
+        try:
+            plugged = config.get_blueprint_value('tgext.pluggable.plugged')
+        except KeyError:
+            plugged = None
+    except AttributeError:
+        plugged = config.get('tgext.pluggable.plugged', None)
+
     if not plugged:
         return []
 
