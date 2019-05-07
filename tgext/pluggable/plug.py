@@ -85,6 +85,22 @@ class PluggablesConfigurationComponent(ConfigurationComponent):
         except KeyError:
             # Already registered
             pass
+
+        # We currently don't support turning on/off
+        # translations for pluggables through the .ini file.
+        # Only through the app_cfg.py itself.
+        # So pluggable_translations_wrapper is registered if
+        # i18n.enabled was true in the blueprint.
+        try:
+            i18n_enabled = configurator.get_blueprint_value('i18n.enabled')
+        except KeyError:
+            i18n_enabled = False
+
+        if i18n_enabled:
+            configurator.get_component('dispatch').register_controller_wrapper(
+                pluggable_translations_wrapper
+            )
+
         return configurator.get_blueprint_value('tgext.pluggable.plugged')
 
     def get_defaults(self):
@@ -104,13 +120,6 @@ class PluggablesConfigurationComponent(ConfigurationComponent):
         model = conf.get('model')
         if model is not None:
             app_model.configure(model)
-
-        i18n_enabled = conf.get('i18n.enabled', False)
-        if i18n_enabled:
-            configurator = conf['tg.configurator']()
-            configurator.get_component('dispatch').register_controller_wrapper(
-                pluggable_translations_wrapper
-            )
 
     def _setup(self, conf, app):
         # Inject call_partial helper if application has helpers
