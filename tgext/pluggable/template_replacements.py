@@ -40,7 +40,10 @@ def _replace_template_hook(remainder, params, output):
     try:
         dispatch_state = req._controller_state
     except:
-        dispatch_state = req.controller_state
+        try:
+            dispatch_state = req.controller_state
+        except:
+            dispatch_state = req._dispatch_state
 
     try:
         if req.validation.exception:
