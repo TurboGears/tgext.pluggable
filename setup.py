@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.8.4'
+version = '0.8.5'
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -20,8 +20,8 @@ setup(name='tgext.pluggable',
         "Framework :: TurboGears"
         ],
       keywords='turbogears2.extension',
-      author='Alessandro Molina',
-      author_email='alessandro.molina@axant.it',
+      author='Alessandro Molina, Jaroslav Mikulík',
+      author_email='alessandro.molina@axant.it, byczech@gmail.com',
       url='https://github.com/TurboGears/tgext.pluggable',
       license='MIT',
       packages=find_packages(exclude=['ez_setup']),
