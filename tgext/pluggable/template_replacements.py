@@ -38,12 +38,12 @@ def _replace_template_hook(remainder, params, output):
     req = request._current_obj()
 
     try:
-        dispatch_state = req._controller_state
+        dispatch_state = req._dispatch_state
     except:
         try:
-            dispatch_state = req.controller_state
+            dispatch_state = req._controller_state
         except:
-            dispatch_state = req._dispatch_state
+            dispatch_state = req.controller_state
 
     try:
         if req.validation.exception:
