@@ -16,7 +16,7 @@ log = logging.getLogger('tgext.pluggable')
 app_model = TargetAppModel()
 
 
-class ModelsAdapter(object):
+class ModelsAdapter:
     def __init__(self, config, models, options):
         self.config = config
         self.models = models
@@ -46,7 +46,7 @@ class ModelsAdapter(object):
         if hasattr(self.models, 'init_model'):
             DBSession = self.config.get('DBSession')
             if DBSession is None:
-                log.warn("Pluggable requires a database, but application didn't provide an DBSession property for AppConfig")
+                log.warning("Pluggable requires a database, but application didn't provide an DBSession property for AppConfig")
                 return
 
             self.models.init_model(DBSession)

@@ -1,11 +1,14 @@
-import sys, tg
+import sys
+
+import tg
 from tg.decorators import Decoration
-from tg.render import render as tg_render
 from tg.exceptions import HTTPFound
+from tg.render import render as tg_render
+
 from .detect import detect_model
 
 
-class PartialCaller(object):
+class PartialCaller:
     def resolve(self, path):
         path, func = path.split(':', 1)
 
@@ -35,7 +38,7 @@ class PartialCaller(object):
         config = tg.config._current_obj()
         try:
             func = config['tgext.pluggable.partials_cache'][path]
-        except:
+        except KeyError:
             func = config['tgext.pluggable.partials_cache'][path] = self.resolve(path)
 
         result = func(**params)
@@ -70,7 +73,7 @@ def mount_point(pluggable_name):
     return '/' + pluggable_path
 
 
-class DeferredMountPointPath(object):
+class DeferredMountPointPath:
     def __init__(self, pluggable_name, path):
         self.pluggable_name = pluggable_name
         self.path = path
@@ -86,8 +89,7 @@ class DeferredMountPointPath(object):
 
 
 def plug_url(pluggable_name, path, params=None, lazy=False, qualified=False):
-    if not params:
-        params = {}
+    params = params or {}
 
     conditional_options = {}
     if qualified is not False:
@@ -111,11 +113,8 @@ def plugged(config=None):
         config = tg.config
 
     try:
-        try:
-            plugged = config.get_blueprint_value('tgext.pluggable.plugged')
-        except KeyError:
-            plugged = None
-    except AttributeError:
+        plugged = config.get_blueprint_value('tgext.pluggable.plugged')
+    except (KeyError, AttributeError):
         plugged = config.get('tgext.pluggable.plugged', None)
 
     if not plugged:

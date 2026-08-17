@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """Main Controller"""
 
-from tg import TGController
-from tg import expose, flash, require, url, lurl, request, redirect, validate
+from tg import TGController, expose, flash
 from tg.i18n import ugettext as _
 
 from {{package}} import model
 from {{package}}.model import DBSession
+
 
 class RootController(TGController):
     @expose('{{package}}.templates.index')

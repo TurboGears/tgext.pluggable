@@ -1,10 +1,9 @@
 import os
-try:
-    from webob.static import DirectoryApp
-except ImportError:
-    from paste.urlparser import StaticURLParser as DirectoryApp
 
-class PluggedStaticsMiddleware(object):
+from webob.static import DirectoryApp
+
+
+class PluggedStaticsMiddleware:
     def __init__(self, app, plugged):
         self.plugged = plugged
         self.app = app
@@ -28,7 +27,7 @@ class PluggedStaticsMiddleware(object):
             return self.app(environ, start_response)
 
 
-class StaticsAdapter(object):
+class StaticsAdapter:
     def __init__(self, app_config, module, options):
         self.app_config = app_config
         self.module = module

@@ -2,7 +2,7 @@ import tg
 from tg.caching import cached_property
 
 
-class LazyProxy(object):
+class LazyProxy:
     def __init__(self):
         self._proxied = None
 
@@ -21,12 +21,12 @@ class PluggableSession(LazyProxy):
     """
 
     def __init__(self):
-        super(PluggableSession, self).__init__()
+        super().__init__()
         # This is required for Ming support, should be ignored by SQLAlchemy
         self.impl = LazyProxy()
 
     def configure(self, session):
-        super(PluggableSession, self).configure(session)
+        super().configure(session)
         self.impl.configure(getattr(session, 'impl', None))
 
     @cached_property
@@ -44,4 +44,3 @@ class TargetAppModel(LazyProxy):
         plugged = tg.config.get('tgext.pluggable.plugged', {}).get('modules', {})
         if pluggable in plugged:
             return plugged[pluggable]['module'].model
-

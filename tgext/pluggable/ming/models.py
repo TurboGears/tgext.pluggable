@@ -1,7 +1,7 @@
 from ..detect import detect_model
 
 
-class MingModelsSupport(object):
+class MingModelsSupport:
     @classmethod
     def is_model(cls, model):
         try:

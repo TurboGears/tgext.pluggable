@@ -1,4 +1,6 @@
 *.py[co]
+__pycache__/
+.venv/
 *.swp
 
 # Packages

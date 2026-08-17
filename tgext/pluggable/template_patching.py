@@ -1,7 +1,7 @@
-from functools import partial
 import logging
 import os
-import pkg_resources
+from importlib.metadata import PackageNotFoundError, distribution
+
 import tg
 
 log = logging.getLogger('tgext.pluggable')
@@ -10,13 +10,16 @@ _etree = None
 _cssselect = None
 _html = None
 
+
 class MissingPropertyError(Exception):
     pass
+
 
 class InvalidActionError(Exception):
     pass
 
-class Patch(object):
+
+class Patch:
     def __init__(self, template):
         if template is None or not template.strip():
             raise MissingPropertyError('template missing for patch')
@@ -29,7 +32,8 @@ class Patch(object):
     def __repr__(self):
         return '<patch template="%s">%s</patch>' % (self.template, ''.join((repr(a) for a in self.actions)))
 
-class Action(object):
+
+class Action:
     VALID_ACTIONS = ('replace', 'append', 'prepend', 'content')
 
     def __init__(self, name, selector, template):
@@ -79,8 +83,10 @@ class Action(object):
     def __repr__(self):
         return '<%s selector="%s" template="%s"/>' % (self.name, self.selector, self.template)
 
+
 def template_patches_store_data(remainder, params, output, *args, **kw):
     tg.request._template_patches_data = output
+
 
 def template_patches_hook(response, *args, **kw):
     patched_template = response.get('template_name')
@@ -107,11 +113,11 @@ def template_patches_hook(response, *args, **kw):
 
     response['response'] = _html.tostring(root, doctype=root.getroottree().docinfo.doctype)
 
+
 def init_template_patches(app_config, conf=None):
     _import_etree()
 
     if conf is None:
-        # Compatibility with TG <= 2.3
         conf = app_config
 
     patches = conf['_pluggable_templates_patches']
@@ -130,13 +136,10 @@ def init_template_patches(app_config, conf=None):
                 action.engine = engine
                 action.template = template
 
-    try:  # TG2.3
-        app_config.register_hook('before_render', template_patches_store_data)
-        app_config.register_hook('after_render', template_patches_hook)
-    except AttributeError:  # TG2.4+
-        tg.hooks.register('before_render', template_patches_store_data)
-        tg.hooks.register('after_render', template_patches_hook)
-        
+    tg.hooks.register('before_render', template_patches_store_data)
+    tg.hooks.register('after_render', template_patches_hook)
+
+
 def _import_etree():
     global _etree, _cssselect, _html
     if _etree is None:
@@ -151,9 +154,10 @@ def _import_etree():
         except ImportError:
             log.error('Template patching requires cssselect, please install cssselect before using it')
 
+
 def _parse_patchfile(patches, patches_file):
     _import_etree()
-    log.info('Loading Patches: %s' % patches_file)
+    log.info('Loading Patches: %s', patches_file)
 
     current_patch = None
     context = _etree.iterparse(patches_file, events=('start',))
@@ -166,36 +170,27 @@ def _parse_patchfile(patches, patches_file):
 
     return patches
 
+
 def load_template_patches(app_config, module_name=None):
     if module_name is None:
-        try:  # TG>=2.4
-            module_name = app_config.get_blueprint_value('package').__name__
-        except AttributeError:  # TG<=2.3
-            module_name = app_config.package.__name__
+        module_name = app_config.get_blueprint_value('package').__name__
+
     try:
-        patches_file = os.path.join(pkg_resources.get_distribution(module_name).location, 'template_patches.xml')
-    except pkg_resources.DistributionNotFound:
-        log.error('%s module not installed...' % module_name)
+        patches_file = distribution(module_name).locate_file('template_patches.xml')
+    except PackageNotFoundError:
+        log.error('%s module not installed...', module_name)
         return
 
     if not os.path.exists(patches_file):
-        log.warn('%s module provides no patches file, %s' % (module_name, patches_file))
+        log.warning('%s module provides no patches file, %s', module_name, patches_file)
+        return
 
-    try: # TG>=2.4
+    try:
         patches = app_config.get_blueprint_value('_pluggable_templates_patches')
     except KeyError:
         patches = {}
         app_config.update_blueprint({'_pluggable_templates_patches': patches})
-    except AttributeError:  # TG<=2.3
-        try:
-            patches = app_config._pluggable_templates_patches
-        except:
-            patches = app_config._pluggable_templates_patches = {}
 
     _parse_patchfile(patches, patches_file)
 
-    try:  # TG2.3
-        app_config.register_hook('startup', partial(init_template_patches, app_config))
-    except AttributeError:  # TG2.4+
-        tg.hooks.register('initialized_config', init_template_patches)
-
+    tg.hooks.register('initialized_config', init_template_patches)

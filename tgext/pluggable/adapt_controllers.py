@@ -1,7 +1,8 @@
 from tg.wsgiapp import TGApp
 from operator import attrgetter
 
-class ControllersAdapter(object):
+
+class ControllersAdapter:
     def __init__(self, config, controllers, options):
         self.config = config
         self.controllers = controllers
@@ -14,7 +15,7 @@ class ControllersAdapter(object):
             tgapp = TGApp()
 
         root = tgapp.find_controller('root')
-        
+
         try:
             route, name = app_id.rsplit('.', 1)
             mountpoint = attrgetter(route)(root).__class__

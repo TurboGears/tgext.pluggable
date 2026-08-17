@@ -1,25 +1,16 @@
 import gettext as _gettext
-
 import os
-from tg import translator, config
+
+from tg import config, translator
 from tg.i18n import LanguageError
 
 from .utils import plugged
 
 
-def pluggable_translations_wrapper(*args):
-    if len(args) > 1:
-        # TurboGears <= 2.3.2
-        next_caller = args[1]
-        def _add_pluggable_translations(controller, remainder, params):
-            _add_pluggables_translators()
-            return next_caller(controller, remainder, params)
-    else:
-        # TurboGears >= 2.3.3
-        next_caller = args[0]
-        def _add_pluggable_translations(config, controller, remainder, params):
-            _add_pluggables_translators()
-            return next_caller(config, controller, remainder, params)
+def pluggable_translations_wrapper(next_caller):
+    def _add_pluggable_translations(config, controller, remainder, params):
+        _add_pluggables_translators()
+        return next_caller(config, controller, remainder, params)
 
     return _add_pluggable_translations
 

@@ -1,7 +1,8 @@
-from __future__ import print_function
+import importlib.util
+from importlib.metadata import PackageNotFoundError, distribution
+import os, re
 
-import os, re, imp
-import pkg_resources
+from .._compat import distribution_name
 
 from gearbox.command import TemplateCommand
 
@@ -23,7 +24,7 @@ Example usage::
         return self.__doc__
 
     def get_parser(self, prog_name):
-        parser = super(QuickstartPluggableCommand, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
 
         parser.add_argument("name")
 
@@ -40,22 +41,21 @@ Example usage::
             package = valid_only.sub("", package)
             opts.package = package
 
-        opts.name = pkg_resources.safe_name(opts.name)
+        opts.name = distribution_name(opts.name)
         opts.project = opts.name
 
-        env = pkg_resources.Environment()
-        if opts.name.lower() in env:
-            print('The name "%s" is already in use by' % opts.name)
-            for dist in env[opts.name]:
-                print(dist)
-                return
-
         try:
-            if imp.find_module(opts.package):
-                print('The package name "%s" is already in use' % opts.package)
-                return
-        except ImportError:
+            installed_project = distribution(opts.name)
+        except PackageNotFoundError:
             pass
+        else:
+            print('The name "%s" is already in use by' % opts.name)
+            print(installed_project.metadata['Name'])
+            return
+
+        if importlib.util.find_spec(opts.package) is not None:
+            print('The package name "%s" is already in use' % opts.package)
+            return
 
         if os.path.exists(opts.name):
             print('A directory called "%s" already exists. Exiting.' % opts.name)
