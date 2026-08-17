@@ -9,7 +9,7 @@ except ImportError:
     from setuptools import setup, find_packages
 
 install_requires=[
-    "TurboGears2 >= 2.3.9",
+    "TurboGears2 >= 2.5",
     "tgext.pluggable"
 ]
 
@@ -28,6 +28,7 @@ setup(
     author_email='',
     #url='',
     keywords='turbogears2.application',
+    python_requires='>=3.10',
     packages=find_packages(exclude=['ez_setup']),
     install_requires=install_requires,
     include_package_data=True,

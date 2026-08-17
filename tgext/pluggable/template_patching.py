@@ -1,7 +1,7 @@
 from functools import partial
 import logging
 import os
-import pkg_resources
+from importlib.metadata import PackageNotFoundError, distribution
 import tg
 
 log = logging.getLogger('tgext.pluggable')
@@ -173,8 +173,8 @@ def load_template_patches(app_config, module_name=None):
         except AttributeError:  # TG<=2.3
             module_name = app_config.package.__name__
     try:
-        patches_file = os.path.join(pkg_resources.get_distribution(module_name).location, 'template_patches.xml')
-    except pkg_resources.DistributionNotFound:
+        patches_file = distribution(module_name).locate_file('template_patches.xml')
+    except PackageNotFoundError:
         log.error('%s module not installed...' % module_name)
         return
 

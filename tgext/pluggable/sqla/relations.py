@@ -17,7 +17,7 @@ if milestones is not None:
             self.column = column
             self.foreign_key_args = kw
 
-        def _set_parent(self, parent):
+        def _set_parent(self, parent, **kw):
             def _resolve_myself():
                 log.debug('Resolving LazyForeignKey %s' % self)
                 parent.table.append_constraint(ForeignKeyConstraint([parent], [self.column()],

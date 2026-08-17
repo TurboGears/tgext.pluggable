@@ -5,9 +5,9 @@ gearbox migrate-pluggable command integrate alembic into tgext.pluggable.
 """
 from __future__ import print_function
 
-import pkg_resources
 from gearbox.command import TemplateCommand
 import os, argparse
+from .._compat import distribution_name
 from tgext.pluggable import plugged
 from paste.deploy import loadapp
 
@@ -87,7 +87,7 @@ Downgrade version::
         from alembic import command as alembic_commands
 
         self.alembic_commands = alembic_commands
-        name = pkg_resources.safe_name(opts.plugname)
+        name = distribution_name(opts.plugname)
 
         if opts.command in ('init', 'create'):
             self._perform_appless_action(name, opts)

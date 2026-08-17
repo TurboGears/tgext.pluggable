@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.8.5'
+version = '0.9.0'
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
@@ -17,7 +17,13 @@ setup(name='tgext.pluggable',
       classifiers=[
         "Environment :: Web Environment",
         "Topic :: Software Development :: Libraries :: Python Modules",
-        "Framework :: TurboGears"
+        "Framework :: TurboGears",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14"
         ],
       keywords='turbogears2.extension',
       author='Alessandro Molina, Jaroslav Mikulík',
@@ -25,12 +31,12 @@ setup(name='tgext.pluggable',
       url='https://github.com/TurboGears/tgext.pluggable',
       license='MIT',
       packages=find_packages(exclude=['ez_setup']),
-      namespace_packages=['tgext'],
       include_package_data=True,
       package_data = {'':['*.html', '*.js', '*.css', '*.png', '*.gif']},
       zip_safe=False,
+      python_requires='>=3.10',
       install_requires=[
-        "TurboGears2 >= 2.3.0",
+        "TurboGears2 >= 2.5",
         "gearbox"
       ],
       entry_points={

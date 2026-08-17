@@ -69,7 +69,7 @@ inside your code through the ``tgext.pluggable.app_model`` object.
 
 Then you can create foreign keys to the desired model using the
 ``tgext.pluggable.LazyForeignKey`` class and declare relations using the lazy
-version of ``sqlalchemy.orm.relation``::
+version of ``sqlalchemy.orm.relationship``::
 
     from tgext.pluggable import app_model, LazyForeignKey
 
@@ -80,7 +80,7 @@ version of ``sqlalchemy.orm.relation``::
         data = Column(Unicode(255), nullable=False)
 
         plugged_model_id = Column(Integer, LazyForeignKey(lambda:app_model.PluggedModel.uid))
-        plugged_model = relation(lambda: app_model.PluggedModel)
+        plugged_model = relationship(lambda: app_model.PluggedModel)
 
 
 Partials
@@ -263,7 +263,7 @@ provided by your pluggable app::
     from tgext.pluggable import app_model, primary_key
 
     user_id = Column(Integer, ForeignKey(primary_key(app_model.User)))
-    user = relation(app_model.User)
+    user = relationship(app_model.User)
 
 Pluggable Relative Urls
 ----------------------------------

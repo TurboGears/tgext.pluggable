@@ -13,4 +13,4 @@ class SQLAModelsSupport(object):
         if rename_tables and appid:
             model.__tablename__ = appid + '_' + model.__tablename__
             model.__table__.name = model.__tablename__
-        model.__table__.tometadata(app_models.DeclarativeBase.metadata)
+        model.__table__.to_metadata(app_models.DeclarativeBase.metadata)

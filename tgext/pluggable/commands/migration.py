@@ -39,9 +39,10 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser
 
-import pkg_resources
+from importlib.metadata import PackageNotFoundError, distribution
 from gearbox.command import Command
 import os, sys, logging, argparse
+from ._compat import distribution_name
 from tgext.pluggable import plugged
 from paste.deploy import loadapp
 
@@ -108,8 +109,8 @@ Apply migrations::
 
     def _pluggable_repository(self, pluggable):
         try:
-            return os.path.join(pkg_resources.get_distribution(pluggable).location, 'migration')
-        except pkg_resources.DistributionNotFound:
+            return distribution(pluggable).locate_file('migration')
+        except PackageNotFoundError:
             print("%s - pluggable not found" % pluggable)
             return None
 
@@ -173,7 +174,7 @@ Apply migrations::
             return main(self.args)
 
         self._setup_logging()
-        name = pkg_resources.safe_name(self.args.pop(0))
+        name = distribution_name(self.args.pop(0))
         sys.argv[0] = sys.argv[0] + ' migrate'
 
         if self.args[0] in ('create', 'script'):
