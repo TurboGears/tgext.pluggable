@@ -1,9 +1,10 @@
-from sqlalchemy import Table, ForeignKey, Column
-from sqlalchemy.types import Unicode, Integer, DateTime
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy import Column, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.types import Integer, Unicode
 
 from {{package}}.model import DeclarativeBase
 from tgext.pluggable import app_model, primary_key
+
 
 class Sample(DeclarativeBase):
     __tablename__ = '{{package}}_samples'
@@ -13,4 +14,3 @@ class Sample(DeclarativeBase):
 
     user_id = Column(Integer, ForeignKey(primary_key(app_model.User)))
     user = relationship(app_model.User)
-

@@ -290,9 +290,8 @@ will fallback to the translations provided by the pluggable itself.
  
 Messages extration and catalog creation/update for the pluggable work as in TurboGears 
 using Babel. 
-Just run inside the pluggable application the ``python setup.py extract_messages``
-, ``python setup.py init_catalog -l LANG`` and ``python setup.py compile_catalog``
-commands to create a catalog for ``LANG``.
+Just run inside the pluggable application the ``gearbox i18n extract``, ``gearbox i18n init -l LANG``
+and ``gearbox i18n compile`` commands to create a catalog for ``LANG``.
 
 Just distribute the catalogs with your pluggable application to make them
 available and translated in applications that use it.

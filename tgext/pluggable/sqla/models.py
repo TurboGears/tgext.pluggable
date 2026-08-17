@@ -1,7 +1,7 @@
 from ..detect import detect_model
 
 
-class SQLAModelsSupport(object):
+class SQLAModelsSupport:
     @classmethod
     def is_model(cls, model):
         try:

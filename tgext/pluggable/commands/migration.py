@@ -33,11 +33,7 @@ Usage:
 check http://code.google.com/p/sqlalchemy-migrate/wiki/MigrateVersioning for detail.
 
 """
-from __future__ import print_function
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 from importlib.metadata import PackageNotFoundError, distribution
 from gearbox.command import Command
@@ -66,7 +62,7 @@ Apply migrations::
         return self.__doc__
 
     def get_parser(self, prog_name):
-        parser = super(MigrateCommand, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.formatter_class = argparse.RawDescriptionHelpFormatter
 
         parser.add_argument("-c", "--config",

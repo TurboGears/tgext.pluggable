@@ -3,16 +3,12 @@ tgext.pluggable migration
 
 gearbox migrate-pluggable command integrate alembic into tgext.pluggable.
 """
-from __future__ import print_function
-
 from gearbox.command import TemplateCommand
 import os, argparse
+from types import SimpleNamespace
 from .._compat import distribution_name
 from tgext.pluggable import plugged
 from paste.deploy import loadapp
-
-class TemplateOptions:
-    pass
 
 class MigrateCommand(TemplateCommand):
     """Create and apply SQLAlchemy migrations
@@ -48,7 +44,7 @@ Downgrade version::
 
 
     def get_parser(self, prog_name):
-        parser = super(MigrateCommand, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.formatter_class = argparse.RawDescriptionHelpFormatter
 
         parser.add_argument("-c", "--config",
@@ -107,8 +103,7 @@ Downgrade version::
         cfg = pluggable_opts['alembic_cfg']
         repository = cfg.get_main_option('script_location')
 
-        template_options = TemplateOptions()
-        template_options.__dict__.update(pluggable_opts)
+        template_options = SimpleNamespace(**pluggable_opts)
         self.run_template(repository, template_options)
 
     def command_create(self, opts, pluggable_opts):

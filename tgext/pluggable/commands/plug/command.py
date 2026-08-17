@@ -1,11 +1,9 @@
-from __future__ import print_function
-
+import fnmatch
 import os
 from collections import defaultdict
 
 from gearbox.command import Command
 from gearbox.commands import patch
-import fnmatch
 
 
 class PlugApplicationCommand(Command):
@@ -13,7 +11,7 @@ class PlugApplicationCommand(Command):
         return 'Adds a pluggable application to current TurboGears app'
 
     def get_parser(self, prog_name):
-        parser = super(PlugApplicationCommand, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
 
         parser.add_argument('appname', metavar='NAME',
                             help="Name of the application that should be plugged")
@@ -25,34 +23,48 @@ class PlugApplicationCommand(Command):
             print('Pluggable applications must start with tgapp- or tgext. name')
             return 1
 
+        pyproject = self._find_file('pyproject.toml')
         setup_py = self._find_file('setup.py')
-        if setup_py is None:
-            print('Unable to find setup.py')
+        if pyproject is None and setup_py is None:
+            print('Unable to find pyproject.toml or setup.py')
             return 1
 
         app_cfg = self._find_file('app_cfg.py')
         if app_cfg is None:
             print('Unable to find app_cfg')
+            return 1
 
         patchcmd = patch.PatchCommand(self.app, self.app_args, 'patch')
-        print('Adding dependency to {}'.format(setup_py))
-        if opts.appname not in self._content(setup_py):
-            patchcmd.run(_OptsDict(
-                regex=True,
-                pattern=setup_py,
-                text='install_requires.*=.*\\[',
-                addition="'{}', ".format(opts.appname),
-                recursive=True
-            ))
 
-        print('Plugging Module in {}'.format(app_cfg))
+        if pyproject is not None:
+            print(f'Adding dependency to {pyproject}')
+            if opts.appname not in self._content(pyproject):
+                patchcmd.run(_OptsDict(
+                    regex=True,
+                    pattern=pyproject,
+                    text='dependencies = \\[',
+                    addition=f'"{opts.appname}", ',
+                    recursive=True
+                ))
+        else:
+            print(f'Adding dependency to {setup_py}')
+            if opts.appname not in self._content(setup_py):
+                patchcmd.run(_OptsDict(
+                    regex=True,
+                    pattern=setup_py,
+                    text='install_requires.*=.*\\[',
+                    addition=f"'{opts.appname}', ",
+                    recursive=True
+                ))
+
+        print(f'Plugging Module in {app_cfg}')
         if 'from tgext.pluggable import plug' not in self._content(app_cfg):
             self._writeback(app_cfg, self._append_line(
                 self._content(app_cfg),
                 '\nfrom tgext.pluggable import plug'
             ))
 
-        plugcode = 'plug(base_config, "{}")'.format(self._plugdef(opts.appname))
+        plugcode = f'plug(base_config, "{self._plugdef(opts.appname)}")'
         if plugcode not in self._content(app_cfg):
             self._writeback(app_cfg, self._append_line(self._content(app_cfg), plugcode))
 
@@ -89,7 +101,8 @@ class PlugApplicationCommand(Command):
 
 class _OptsDict(defaultdict):
     def __init__(self, **opts):
-        super(_OptsDict, self).__init__(lambda: False)
+        super().__init__(lambda: False)
         self.update(opts)
+
     def __getattr__(self, item):
         return self[item]

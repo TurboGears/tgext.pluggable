@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{project}}"
+version = "0.1.0"
+description = ""
+readme = { file = "README.rst", content-type = "text/x-rst" }
+requires-python = ">=3.10"
+dependencies = [
+    "TurboGears2 >= 2.5.0",
+    "tgext.pluggable",
+]
+
+[project.entry-points."gearbox.plugins"]
+turbogears-devtools = "tg.devtools"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+exclude = []
+
+[tool.setuptools.package-data]
+{{package}} = [
+    "i18n/*/LC_MESSAGES/*.mo",
+    "templates/*",
+    "templates/*/*",
+    "public/*/*"
+]
+
+[tool.tg.devtools.i18n]
+domain = "{{package}}"
+directory = "{{package}}/i18n"
+pot_file = "{{package}}/i18n/{{package}}.pot"
+
+[tool.tg.devtools.i18n.extract]
+add_comments = "TRANSLATORS:"
+width = 80
+keywords = ["l_"]
+mapping_file = "pyproject.toml"
+
+[tool.tg.devtools.i18n.update]
+previous = true
+
+[tool.tg.devtools.i18n.compile]
+statistics = true
+
+[tool.babel]
+
+[[tool.babel.mappings]]
+method = "python"
+pattern = "**.py"
+
+[[tool.babel.mappings]]
+method = "ignore"
+pattern = "public/**"
+
+[[tool.babel.mappings]]
+method = "kajiki"
+pattern = "**/templates/**.xhtml"
+strip_text = false
+extract_python = true

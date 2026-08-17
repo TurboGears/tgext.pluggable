@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import importlib.util
 from importlib.metadata import PackageNotFoundError, distribution
 import os, re
@@ -26,7 +24,7 @@ Example usage::
         return self.__doc__
 
     def get_parser(self, prog_name):
-        parser = super(QuickstartPluggableCommand, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
 
         parser.add_argument("name")
 
